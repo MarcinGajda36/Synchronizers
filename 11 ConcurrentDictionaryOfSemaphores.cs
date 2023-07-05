@@ -21,16 +21,16 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>
     {
         public readonly struct Lease : IDisposable
         {
-            private readonly IDisposable refCount;
             private readonly SemaphoreSlim? toRelease;
+            private readonly IDisposable refCount;
 
-            public bool IsAcquired { get; }
+            public readonly bool IsAcquired;
 
             public Lease(bool isAcquired, IDisposable refCount, SemaphoreSlim? toRelease)
             {
                 IsAcquired = isAcquired;
-                this.refCount = refCount;
                 this.toRelease = toRelease;
+                this.refCount = refCount;
             }
 
             public void Dispose()
@@ -40,8 +40,8 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>
             }
         }
 
-        private readonly SemaphoreSlim semaphoreSlim = new(1, 1);
         private readonly RefCountDisposable refCountDisposable;
+        private readonly SemaphoreSlim semaphoreSlim = new(1, 1);
         private readonly ConcurrentDictionary<TKey, Synchronizer> synchronizers;
         private readonly TKey key;
 
@@ -63,7 +63,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>
             refCountDisposable = new RefCountDisposable(disposable);
         }
 
-        public async ValueTask<Lease> Acquire(CancellationToken cancellationToken)
+        public async ValueTask<Lease> AcquireAsync(CancellationToken cancellationToken)
         {
             var refCount = refCountDisposable.GetDisposable();
             if (refCountDisposable.IsDisposed)
@@ -100,11 +100,11 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>
         Func<TArgument, CancellationToken, Task<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
-        while (cancellationToken.IsCancellationRequested is false)
+        while (true)
         {
             if (synchronizers.TryGetValue(key, out var oldSynchronizer))
             {
-                using var lease = await oldSynchronizer.Acquire(cancellationToken);
+                using var lease = await oldSynchronizer.AcquireAsync(cancellationToken);
                 if (lease.IsAcquired)
                 {
                     return await resultFactory(argument, cancellationToken);
@@ -116,13 +116,12 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>
                 if (synchronizers.TryAdd(key, newSynchronizer))
                 {
                     newSynchronizer.AddedToDictionary = true;
-                    using var lease = await newSynchronizer.Acquire(cancellationToken);
+                    using var lease = await newSynchronizer.AcquireAsync(cancellationToken);
                     return await resultFactory(argument, cancellationToken);
                 }
             }
+            cancellationToken.ThrowIfCancellationRequested();
         }
-
-        return await Task.FromCanceled<TResult>(cancellationToken);
     }
 
     public Task<TResult> SynchronizeAsync<TResult>(
