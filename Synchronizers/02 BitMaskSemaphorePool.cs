@@ -51,7 +51,7 @@ public sealed class BitMaskSemaphorePool : IDisposable
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, Task<TResult>> func,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
         where TKey : notnull
     {
         var index = GetKeyIndex(key);

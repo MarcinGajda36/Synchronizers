@@ -11,7 +11,7 @@ public class DictionaryOfSemaphores<TKey>
     private readonly record struct SemaphoreCountPair(nuint Count, SemaphoreSlim Semaphore);
     private readonly Dictionary<TKey, SemaphoreCountPair> semaphores;
 
-    public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer)
+    public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer = null)
         => semaphores = new(equalityComparer);
 
     private SemaphoreSlim GetOrCreate(TKey key)
@@ -45,7 +45,7 @@ public class DictionaryOfSemaphores<TKey>
         }
     }
 
-    public async Task ExecuteActionAsync<TArgument, TResult>(
+    public async Task SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, Task<TResult>> func,

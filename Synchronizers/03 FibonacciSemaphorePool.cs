@@ -27,7 +27,7 @@ public sealed class FibonacciSemaphorePool : IDisposable
             throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be bigger then 2 and a power of 2.");
         }
 
-        poolIndexBitShift = 32 - BitOperations.LeadingZeroCount(size);
+        poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(size);
         pool = new SemaphoreSlim[size];
         for (int index = 0; index < pool.Length; index++)
         {
@@ -56,11 +56,11 @@ public sealed class FibonacciSemaphorePool : IDisposable
         }
     }
 
-    public async Task<TResult> Synchronize<TKey, TArgument, TResult>(
+    public async Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, Task<TResult>> func,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
         where TKey : notnull
     {
         var index = GetKeyIndex(key);
