@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace Synchronizers;
 public class DictionaryOfSemaphores<TKey>
     where TKey : notnull
 {
-    private readonly record struct SemaphoreCountPair(SemaphoreSlim Semaphore, int Count);
+    private readonly record struct SemaphoreCountPair(SemaphoreSlim Semaphore, nuint Count);
     private readonly Dictionary<TKey, SemaphoreCountPair> semaphores;
 
     public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer)
@@ -17,11 +18,16 @@ public class DictionaryOfSemaphores<TKey>
     {
         lock (semaphores)
         {
-            var pair = semaphores.TryGetValue(key, out var semaphore)
-                ? semaphore with { Count = semaphore.Count + 1 }
-                : new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
+            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
+            if (exists)
+            {
+                pair = pair with { Count = pair.Count + 1 };
+            }
+            else
+            {
+                pair = new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
+            }
 
-            semaphores[key] = pair;
             return pair.Semaphore;
         }
     }
@@ -30,16 +36,13 @@ public class DictionaryOfSemaphores<TKey>
     {
         lock (semaphores)
         {
-            if (semaphores.TryGetValue(key, out var pair))
+            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
+            if (pair.Count == 1)
             {
-                var newCount = pair.Count - 1;
-                if (newCount == 0)
-                {
-                    semaphores.Remove(key);
-                    pair.Semaphore.Dispose();
-                }
-                semaphores[key] = pair with { Count = newCount };
+                pair.Semaphore.Dispose();
+                semaphores.Remove(key);
             }
+            pair = pair with { Count = pair.Count - 1 };
         }
     }
 
