@@ -8,7 +8,7 @@ namespace SynchronizersTests;
 
 public class Tests
 {
-    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001);
+    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-1000, 2001);
 
     [Test]
     public async Task SemaphorePool()
@@ -18,15 +18,15 @@ public class Tests
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, numer, async (number, _) => firstSum += numer);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, numer, async (number, _) => secondSum += numer);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -42,15 +42,15 @@ public class Tests
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, numer, async (number, _) => firstSum += numer);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, numer, async (number, _) => secondSum += numer);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -66,15 +66,15 @@ public class Tests
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, numer, async (number, _) => firstSum += numer);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, numer, async (number, _) => secondSum += numer);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -90,15 +90,15 @@ public class Tests
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, numer, async (number, _) => firstSum += numer);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, numer, async (number, _) => secondSum += numer);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -114,15 +114,15 @@ public class Tests
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, numer, async (number, _) => firstSum += numer);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (numer, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
             await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, numer, async (number, _) => secondSum += numer);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
