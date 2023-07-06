@@ -8,7 +8,7 @@ namespace Synchronizers;
 public class DictionaryOfSemaphores<TKey>
     where TKey : notnull
 {
-    private readonly record struct SemaphoreCountPair(SemaphoreSlim Semaphore, nuint Count);
+    private readonly record struct SemaphoreCountPair(nuint Count, SemaphoreSlim Semaphore);
     private readonly Dictionary<TKey, SemaphoreCountPair> semaphores;
 
     public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer)
@@ -21,9 +21,10 @@ public class DictionaryOfSemaphores<TKey>
             ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
             pair = exists
                 ? pair with { Count = pair.Count + 1 }
-                : new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
+                : new SemaphoreCountPair(1, new SemaphoreSlim(1, 1));
 
-            return pair.Semaphore;
+            var semaphore = pair.Semaphore;
+            return semaphore;
         }
     }
 
