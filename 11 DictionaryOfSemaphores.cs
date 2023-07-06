@@ -19,14 +19,9 @@ public class DictionaryOfSemaphores<TKey>
         lock (semaphores)
         {
             ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
-            if (exists)
-            {
-                pair = pair with { Count = pair.Count + 1 };
-            }
-            else
-            {
-                pair = new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
-            }
+            pair = exists
+                ? pair with { Count = pair.Count + 1 }
+                : new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
 
             return pair.Semaphore;
         }
@@ -42,7 +37,10 @@ public class DictionaryOfSemaphores<TKey>
                 pair.Semaphore.Dispose();
                 semaphores.Remove(key);
             }
-            pair = pair with { Count = pair.Count - 1 };
+            else
+            {
+                pair = pair with { Count = pair.Count - 1 };
+            }
         }
     }
 
