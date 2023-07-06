@@ -16,7 +16,7 @@ public class Tests
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new SemaphorePool(69);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -40,7 +40,7 @@ public class Tests
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new BitMaskSemaphorePool(32);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -64,7 +64,7 @@ public class Tests
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new FibonacciSemaphorePool(32);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -112,7 +112,7 @@ public class Tests
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new ConcurrentDictionaryOfSemaphores<int>();
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
