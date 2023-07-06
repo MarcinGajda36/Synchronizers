@@ -23,8 +23,7 @@ public class DictionaryOfSemaphores<TKey>
                 ? pair with { Count = pair.Count + 1 }
                 : new SemaphoreCountPair(1, new SemaphoreSlim(1, 1));
 
-            var semaphore = pair.Semaphore;
-            return semaphore;
+            return pair.Semaphore;
         }
     }
 

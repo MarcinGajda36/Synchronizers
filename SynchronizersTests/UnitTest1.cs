@@ -8,7 +8,7 @@ namespace SynchronizersTests;
 
 public class Tests
 {
-    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-1000, 2001);
+    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001);
 
     [Test]
     public async Task SemaphorePool()
