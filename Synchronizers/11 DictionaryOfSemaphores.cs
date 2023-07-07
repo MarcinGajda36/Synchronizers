@@ -51,7 +51,7 @@ public class DictionaryOfSemaphores<TKey>
         CancellationToken cancellationToken = default)
     {
         var semaphore = GetOrCreate(key);
-        await semaphore.WaitAsync();
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
             await func(argument, cancellationToken);

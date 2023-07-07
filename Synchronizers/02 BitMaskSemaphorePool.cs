@@ -25,7 +25,7 @@ public sealed class BitMaskSemaphorePool : IDisposable
     {
         if (size < 2 || BitOperations.IsPow2(size) is false)
         {
-            throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be bigger then 2 and a power of 2.");
+            throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be bigger then 1 and a power of 2.");
         }
 
         poolIndexBitMask = (int)size - 1;

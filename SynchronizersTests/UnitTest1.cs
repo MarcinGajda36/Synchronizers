@@ -20,13 +20,13 @@ public class Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -44,13 +44,13 @@ public class Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -68,13 +68,13 @@ public class Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -92,13 +92,13 @@ public class Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -116,13 +116,13 @@ public class Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
-            await Task.Delay(1);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number);
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 

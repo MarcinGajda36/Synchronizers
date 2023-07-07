@@ -19,6 +19,11 @@ public sealed class SemaphorePool : IDisposable
 
     public SemaphorePool(int size)
     {
+        if (size < 2)
+        {
+            throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 2.");
+        }
+
         pool = new SemaphoreSlim[size];
         for (int index = 0; index < pool.Length; index++)
         {
