@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synchronizers;
-public class DictionaryOfSemaphores<TKey>
+public class PerKeySynchronizer<TKey>
     where TKey : notnull
 {
     private readonly record struct SemaphoreCountPair(nuint Count, SemaphoreSlim Semaphore);
     private readonly Dictionary<TKey, SemaphoreCountPair> semaphores;
 
-    public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer = null)
+    public PerKeySynchronizer(IEqualityComparer<TKey>? equalityComparer = null)
         => semaphores = new(equalityComparer);
 
     private SemaphoreSlim GetOrCreate(TKey key)
@@ -44,7 +44,7 @@ public class DictionaryOfSemaphores<TKey>
         }
     }
 
-    public async Task SynchronizeAsync<TArgument, TResult>(
+    public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, Task<TResult>> func,
@@ -54,7 +54,7 @@ public class DictionaryOfSemaphores<TKey>
         await semaphore.WaitAsync(cancellationToken);
         try
         {
-            await func(argument, cancellationToken);
+            return await func(argument, cancellationToken);
         }
         finally
         {
@@ -62,4 +62,19 @@ public class DictionaryOfSemaphores<TKey>
             Cleanup(key);
         }
     }
+
+    public Task SynchronizeAsync<TArgument>(
+        TKey key,
+        TArgument argument,
+        Func<TArgument, CancellationToken, Task> func,
+        CancellationToken cancellationToken = default)
+        => SynchronizeAsync(
+            key,
+            (func, argument),
+            async (funcArgument, cancellationToken) =>
+            {
+                await func(argument, cancellationToken);
+                return false;
+            },
+            cancellationToken);
 }
