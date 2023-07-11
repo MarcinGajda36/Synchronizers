@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synchronizers;
-public class PerKeySynchronizer<TKey>
+public class DictionaryOfSemaphores<TKey>
     where TKey : notnull
 {
     private readonly record struct SemaphoreCountPair(nuint Count, SemaphoreSlim Semaphore);
     private readonly Dictionary<TKey, SemaphoreCountPair> semaphores;
 
-    public PerKeySynchronizer(IEqualityComparer<TKey>? equalityComparer = null)
+    public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer = null)
         => semaphores = new(equalityComparer);
 
     private SemaphoreSlim GetOrCreate(TKey key)

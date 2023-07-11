@@ -89,7 +89,7 @@ public class Tests
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new PerKeySynchronizer<int>();
+        var synchronizer = new DictionaryOfSemaphores<int>();
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -135,7 +135,7 @@ public class Tests
     public async Task SynchronizeAsync_SingleKey_ExecutesFunction()
     {
         // Arrange
-        var synchronizer = new PerKeySynchronizer<int>();
+        var synchronizer = new DictionaryOfSemaphores<int>();
         var key = 1;
         var argument = "test";
         var isFunctionExecuted = false;
@@ -155,7 +155,7 @@ public class Tests
     public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently()
     {
         // Arrange
-        var synchronizer = new PerKeySynchronizer<int>();
+        var synchronizer = new DictionaryOfSemaphores<int>();
         var argument = "test";
         var executionOrder = "";
 
@@ -188,7 +188,7 @@ public class Tests
     public void SynchronizeAsync_CancellationRequested_DoesNotExecuteFunction()
     {
         // Arrange
-        var synchronizer = new PerKeySynchronizer<int>();
+        var synchronizer = new DictionaryOfSemaphores<int>();
         var isFunctionExecuted = false;
         using var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
