@@ -113,7 +113,7 @@ public class Tests
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new ConcurrentDictionaryOfSemaphores<int>();
+        var synchronizer = new ConcurrentDictionaryRefCountDisposable<int>();
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -211,5 +211,29 @@ public class Tests
 
             Assert.That(isFunctionExecuted, Is.False);
         });
+    }
+
+    [Test]
+    public async Task ConcurrentDictionaryOptimistic()
+    {
+        int firstSum = 0;
+        int secondSum = 0;
+
+        var synchronizer = new ConcurrentDictionaryOptimistic<int>();
+
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        {
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+        });
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        {
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+        });
+        await Task.WhenAll(firstSumTask, secondSumTask);
+
+        Assert.That(firstSum, Is.EqualTo(secondSum));
+        Assert.That(firstSum, Is.EqualTo(0));
     }
 }

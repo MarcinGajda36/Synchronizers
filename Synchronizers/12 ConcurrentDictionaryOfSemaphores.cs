@@ -14,7 +14,7 @@ namespace Synchronizers;
 /// Total control of TKey equality comparison.
 /// Restricted to one type of TKey per instance.
 /// </summary>
-public sealed class ConcurrentDictionaryOfSemaphores<TKey>
+public sealed class ConcurrentDictionaryRefCountDisposable<TKey>
     where TKey : notnull
 {
     private sealed class Synchronizer : IDisposable
@@ -91,7 +91,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>
 
     private readonly ConcurrentDictionary<TKey, Synchronizer> synchronizers;
 
-    public ConcurrentDictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer = null)
+    public ConcurrentDictionaryRefCountDisposable(IEqualityComparer<TKey>? equalityComparer = null)
         => synchronizers = new(equalityComparer);
 
     public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
