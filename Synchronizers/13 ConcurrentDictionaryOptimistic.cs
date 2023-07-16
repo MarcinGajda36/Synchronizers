@@ -16,39 +16,38 @@ public class ConcurrentDictionaryOptimistic<TKey>
     public ConcurrentDictionaryOptimistic(IEqualityComparer<TKey>? equalityComparer = null)
         => semaphores = new(equalityComparer);
 
-    private SemaphoreSlim GetOrCreate(TKey key)
+    private CountSemaphorePair GetOrCreate(TKey key)
     {
         while (true)
         {
-            if (semaphores.TryGetValue(key, out var previous))
+            if (semaphores.TryGetValue(key, out var old))
             {
-                if (previous.Count == TombStone)
+                if (old.Count == TombStone)
                     continue;
 
-                var updated = previous with { Count = previous.Count + 1 };
-                if (semaphores.TryUpdate(key, updated, previous))
-                    return previous.Semaphore;
+                var incremented = old with { Count = old.Count + 1 };
+                if (semaphores.TryUpdate(key, incremented, old))
+                    return old;
             }
             else
             {
-                var newSemaphore = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
-                if (semaphores.TryAdd(key, newSemaphore))
-                    return newSemaphore.Semaphore;
+                var @new = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
+                if (semaphores.TryAdd(key, @new))
+                    return @new;
                 else
-                    newSemaphore.Semaphore.Dispose();
+                    @new.Semaphore.Dispose();
             }
         }
     }
 
-    private void Cleanup(TKey key)
+    private void Cleanup(TKey key, CountSemaphorePair old)
     {
         while (true)
         {
-            var previous = semaphores[key];
-            if (previous.Count is 1)
+            if (old.Count == 1)
             {
-                var tombStoned = previous with { Count = TombStone };
-                if (semaphores.TryUpdate(key, tombStoned, previous))
+                var tombStoned = old with { Count = TombStone };
+                if (semaphores.TryUpdate(key, tombStoned, old))
                 {
                     semaphores.TryRemove(key, out _);
                     tombStoned.Semaphore.Dispose();
@@ -57,10 +56,11 @@ public class ConcurrentDictionaryOptimistic<TKey>
             }
             else
             {
-                var @new = previous with { Count = previous.Count - 1 };
-                if (semaphores.TryUpdate(key, @new, previous))
+                var decremented = old with { Count = old.Count - 1 };
+                if (semaphores.TryUpdate(key, decremented, old))
                     return;
             }
+            old = semaphores[key];
         }
     }
 
@@ -70,16 +70,16 @@ public class ConcurrentDictionaryOptimistic<TKey>
         Func<TArgument, CancellationToken, Task<TResult>> func,
         CancellationToken cancellationToken = default)
     {
-        var semaphore = GetOrCreate(key);
-        await semaphore.WaitAsync(cancellationToken);
+        var pair = GetOrCreate(key);
+        await pair.Semaphore.WaitAsync(cancellationToken);
         try
         {
             return await func(argument, cancellationToken);
         }
         finally
         {
-            semaphore.Release();
-            Cleanup(key);
+            pair.Semaphore.Release();
+            Cleanup(key, pair);
         }
     }
 }
