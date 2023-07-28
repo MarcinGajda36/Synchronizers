@@ -70,10 +70,10 @@ public class DictionaryOfSemaphores<TKey>
         CancellationToken cancellationToken = default)
         => SynchronizeAsync(
             key,
-            (func, argument),
-            async (funcArgument, cancellationToken) =>
+            (argument, func),
+            static async (arguments, cancellationToken) =>
             {
-                await func(argument, cancellationToken);
+                await arguments.func(arguments.argument, cancellationToken);
                 return false;
             },
             cancellationToken);

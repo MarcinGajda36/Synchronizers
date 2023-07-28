@@ -18,7 +18,8 @@ public class ConcurrentDictionaryOptimistic<TKey>
 
     private CountSemaphorePair GetOrCreate(TKey key)
     {
-        while (true)// TODO: if i put this loop inside SynchronizeAsync then maybe i can get away with one loop.
+        // If i put this loop inside SynchronizeAsync then maybe i can see some additional perf improvements.
+        while (true)
         {
             if (semaphores.TryGetValue(key, out var old))
             {
@@ -40,6 +41,7 @@ public class ConcurrentDictionaryOptimistic<TKey>
         }
     }
 
+    // There is a choice here between passing only key and staring from value lookup or passing pair and trying to update with it.
     private void Cleanup(TKey key, CountSemaphorePair old)
     {
         while (true)

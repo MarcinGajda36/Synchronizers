@@ -67,7 +67,7 @@ public sealed class BitMaskSemaphorePool : IDisposable
         }
     }
 
-    public async ValueTask<TResult> SynchronizeVAsync<TKey, TArgument, TResult>(
+    public async ValueTask<TResult> SynchronizeValueAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> func,
