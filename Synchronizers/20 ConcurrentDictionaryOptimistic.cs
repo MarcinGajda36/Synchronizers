@@ -16,7 +16,7 @@ public class ConcurrentDictionaryOptimistic<TKey>
     public ConcurrentDictionaryOptimistic(IEqualityComparer<TKey>? equalityComparer = null)
         => semaphores = new(equalityComparer);
 
-    private CountSemaphorePair GetOrCreate(TKey key)
+    private SemaphoreSlim GetOrCreate(TKey key)
     {
         // If i put this loop inside SynchronizeAsync then maybe i can see some additional perf improvements.
         while (true)
@@ -28,13 +28,13 @@ public class ConcurrentDictionaryOptimistic<TKey>
 
                 var incremented = old with { Count = old.Count + 1 };
                 if (semaphores.TryUpdate(key, incremented, old))
-                    return old;
+                    return old.Semaphore;
             }
             else
             {
                 var @new = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
                 if (semaphores.TryAdd(key, @new))
-                    return @new;
+                    return @new.Semaphore;
                 else
                     @new.Semaphore.Dispose();
             }
@@ -42,10 +42,11 @@ public class ConcurrentDictionaryOptimistic<TKey>
     }
 
     // There is a choice here between passing only key and staring from value lookup or passing pair and trying to update with it.
-    private void Cleanup(TKey key, CountSemaphorePair old)
+    private void Cleanup(TKey key)
     {
         while (true)
         {
+            var old = semaphores[key];
             if (old.Count == 1)
             {
                 var tombStoned = old with { Count = TombStone };
@@ -62,7 +63,6 @@ public class ConcurrentDictionaryOptimistic<TKey>
                 if (semaphores.TryUpdate(key, decremented, old))
                     return;
             }
-            old = semaphores[key];
         }
     }
 
@@ -72,16 +72,16 @@ public class ConcurrentDictionaryOptimistic<TKey>
         Func<TArgument, CancellationToken, Task<TResult>> func,
         CancellationToken cancellationToken = default)
     {
-        var pair = GetOrCreate(key);
-        await pair.Semaphore.WaitAsync(cancellationToken);
+        var semaphore = GetOrCreate(key);
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
             return await func(argument, cancellationToken);
         }
         finally
         {
-            pair.Semaphore.Release();
-            Cleanup(key, pair);
+            semaphore.Release();
+            Cleanup(key);
         }
     }
 }
