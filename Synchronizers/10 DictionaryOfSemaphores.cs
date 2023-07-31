@@ -74,7 +74,7 @@ public class DictionaryOfSemaphores<TKey>
             static async (arguments, cancellationToken) =>
             {
                 await arguments.func(arguments.argument, cancellationToken);
-                return false;
+                return true;
             },
             cancellationToken);
 }
