@@ -18,6 +18,11 @@ public class Experiment
 
     public Experiment(int maxDegreeOfParallelism = 32)
     {
+        const int MaxMaxDegreeOfParallelism = 65535;
+        if (maxDegreeOfParallelism > MaxMaxDegreeOfParallelism)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism), $"{nameof(maxDegreeOfParallelism)} is '{MaxMaxDegreeOfParallelism}'.");
+        }
         entries = new Entry[maxDegreeOfParallelism];
         for (int i = 0; i < entries.Length; i++)
         {
