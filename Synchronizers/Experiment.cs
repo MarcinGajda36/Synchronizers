@@ -1,12 +1,14 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Synchronizers;
 public class Experiment
 {
-    const ulong Empty = 1ul << 63;
-    const ulong NotEmpty = ~Empty;
-    const uint HashMask = uint.MaxValue;
-    const ulong NextMask = (ulong)(uint.MaxValue >> 1) << 32;
+    const ulong Empty           = 0b1000000000000000000000000000000000000000000000000000000000000000;
+    const ulong HashMask        = 0b0000000000000000000000000000000011111111111111111111111111111111;
+    const ulong NextMask        = 0b0111111111111111000000000000000000000000000000000000000000000000;
+    const ulong RefCountMask    = 0b0000000000000000111111111111111100000000000000000000000000000000;
 
     // To know if entry can be reset to empty i need refCount, use some bits or add new int?
     // 7 bits is 128
@@ -21,5 +23,13 @@ public class Experiment
         {
             entries[i] = new Entry(Empty, new SemaphoreSlim(1, 1));
         }
+    }
+
+    public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
+        TArgument argument,
+        Func<TArgument, CancellationToken, Task<TResult>> resultFactory,
+        CancellationToken cancellationToken = default)
+    {
+        return default;
     }
 }
