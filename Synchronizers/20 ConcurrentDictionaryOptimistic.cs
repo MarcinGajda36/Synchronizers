@@ -8,8 +8,6 @@ namespace Synchronizers;
 public class ConcurrentDictionaryOptimistic<TKey>
     where TKey : notnull
 {
-    const nint TombStone = -1;
-
     private readonly record struct CountSemaphorePair(nint Count, SemaphoreSlim Semaphore);
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores;
 
@@ -23,9 +21,6 @@ public class ConcurrentDictionaryOptimistic<TKey>
         {
             if (semaphores.TryGetValue(key, out var old))
             {
-                if (old.Count == TombStone)
-                    continue;
-
                 var incremented = old with { Count = old.Count + 1 };
                 if (semaphores.TryUpdate(key, incremented, old))
                     return old.Semaphore;
@@ -49,11 +44,9 @@ public class ConcurrentDictionaryOptimistic<TKey>
             var old = semaphores[key];
             if (old.Count == 1)
             {
-                var tombStoned = old with { Count = TombStone };
-                if (semaphores.TryUpdate(key, tombStoned, old))
+                if (semaphores.TryRemove(KeyValuePair.Create(key, old)))
                 {
-                    semaphores.TryRemove(key, out _);
-                    tombStoned.Semaphore.Dispose();
+                    old.Semaphore.Dispose();
                     return;
                 }
             }
