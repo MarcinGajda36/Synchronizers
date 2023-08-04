@@ -63,7 +63,7 @@ public class Experiment
             if ((entryHash & Empty) != 0)
             {
                 ulong newEntryHash = (ulong)keyHash + (1 << 32);
-                if (Interlocked.CompareExchange(ref entry.Hash, newEntryHash, entryHash) == entryHash)
+                if (Interlocked.CompareExchange(ref entry.Hash, newEntryHash, Empty) == Empty)
                 {
                     await entry.Semaphore.WaitAsync(cancellationToken);
                     try
