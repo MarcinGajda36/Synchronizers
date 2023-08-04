@@ -80,6 +80,8 @@ public class Experiment
             else
             {
                 // Not empty
+                // On collision both the call that currently holds index and next empty space i fall back to can be contested 
+                // I think i need to increment counter before looking for next empty spot to deal with contention. 
             }
         }
 
