@@ -8,7 +8,7 @@ namespace Synchronizers;
 public class DictionaryOfSemaphores<TKey>
     where TKey : notnull
 {
-    private readonly record struct CountSemaphorePair(nuint Count, SemaphoreSlim Semaphore);
+    private readonly record struct CountSemaphorePair(nuint Count, SemaphoreSlim Semaphore); // i can remove readonly and mutate Count in place by ref right? 
     private readonly Dictionary<TKey, CountSemaphorePair> semaphores;
 
     public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer = null)
