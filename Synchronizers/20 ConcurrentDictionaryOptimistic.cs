@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Synchronizers;
 
 // Maximizes paralelizm?
+// Dictionaries also make it safe to use SynchronizeAsync inside of other key SynchronizeAsync and pools could dead-lock on it.
 public class ConcurrentDictionaryOptimistic<TKey>
     where TKey : notnull
 {
