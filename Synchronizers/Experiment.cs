@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 namespace Synchronizers;
 public class Experiment
 {
-    const ulong Empty = 0b1000000000000000000000000000000000000000000000000000000000000000;
+    const ulong Empty = 0b1000000000000000000000000000000000000000000000000000000000000000; // Is that needed?
     const ulong HashMask = 0b0000000000000000000000000000000011111111111111111111111111111111;
     const ulong NextMask = 0b0111111111111111000000000000000000000000000000000000000000000000;
     const ulong RefCountMask = 0b0000000000000000111111111111111100000000000000000000000000000000;
 
-    // To know if entry can be reset to empty i need refCount, use some bits or add new int?
-    // 7 bits is 128
-    // i could use bits of NextMask
     private sealed class Entry
     {
         public ulong Hash;
@@ -57,7 +54,7 @@ public class Experiment
         var jumps = 0;
         while (true)
         {
-            var indexMask = (index + jumps) & entriesMask;
+            var indexMask = (index + jumps) & entriesMask; // Masks wraps around
             var entry = entries[indexMask];
             var entryHash = entry.Hash;
             if ((entryHash & Empty) != 0)

@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synchronizers;
+
+// Maximizes paralelizm?
 public class ConcurrentDictionaryOptimistic<TKey>
     where TKey : notnull
 {

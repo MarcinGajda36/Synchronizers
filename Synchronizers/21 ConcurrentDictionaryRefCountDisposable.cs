@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Synchronizers;
 
+// Old but kept for sentimental value 
+
 /// <summary>
 /// Very complex code.
 /// High overhead of semaphore finding.
