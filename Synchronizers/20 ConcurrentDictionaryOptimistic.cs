@@ -44,7 +44,8 @@ public class ConcurrentDictionaryOptimistic<TKey>
             var old = semaphores[key];
             if (old.Count == 1)
             {
-                if (semaphores.TryRemove(KeyValuePair.Create(key, old)))
+                var toRemove = KeyValuePair.Create(key, old);
+                if (semaphores.TryRemove(toRemove))
                 {
                     old.Semaphore.Dispose();
                     return;
