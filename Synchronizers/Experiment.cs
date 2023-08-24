@@ -11,20 +11,9 @@ public class Experiment
     const ulong NextMask = 0b0111111111111111000000000000000000000000000000000000000000000000;
     const ulong RefCountMask = 0b0000000000000000111111111111111100000000000000000000000000000000;
 
-    private sealed class Entry
-    {
-        public ulong Hash;
-        public SemaphoreSlim Semaphore;
-
-        public Entry(ulong hash, SemaphoreSlim semaphore)
-        {
-            Hash = hash;
-            Semaphore = semaphore;
-        }
-    }
-
-    readonly Entry[] entries;
-    readonly int entriesMask;
+    readonly ulong[] keys;
+    readonly SemaphoreSlim[] semaphores;
+    readonly int keysIndexMask;
 
     public Experiment(int maxDegreeOfParallelism = 32)
     {
@@ -34,11 +23,12 @@ public class Experiment
             throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism), $"{nameof(maxDegreeOfParallelism)} is '{MaxMaxDegreeOfParallelism}' and has to be power of 2.");
         }
 
-        entries = new Entry[maxDegreeOfParallelism];
-        entriesMask = entries.Length - 1;
-        for (int i = 0; i < entries.Length; i++)
+        keys = new ulong[maxDegreeOfParallelism];
+        semaphores = new SemaphoreSlim[maxDegreeOfParallelism];
+        keysIndexMask = keys.Length - 1;
+        for (int idx = 0; idx < semaphores.Length; idx++)
         {
-            entries[i] = new Entry(Empty, new SemaphoreSlim(1, 1));
+            semaphores[idx] = new SemaphoreSlim(1, 1);
         }
     }
 
@@ -50,27 +40,27 @@ public class Experiment
         where TKey : notnull
     {
         var keyHash = key.GetHashCode();
-        var index = keyHash & entriesMask;
+        var initialIndex = keyHash & keysIndexMask;
         var jumps = 0;
         while (true)
         {
-            var indexMask = (index + jumps) & entriesMask; // Masks wraps around
-            var entry = entries[indexMask];
-            var entryHash = entry.Hash;
-            if ((entryHash & Empty) != 0)
+            var currentIndex = (initialIndex + jumps) & keysIndexMask; // Masks wraps around
+            var indexKey = keys[currentIndex];
+            if ((indexKey & Empty) != 0)
             {
                 ulong refCount = 1ul << 32;
                 ulong newEntryHash = (ulong)keyHash + refCount;
-                if (Interlocked.CompareExchange(ref entry.Hash, newEntryHash, Empty) == Empty)
+                if (Interlocked.CompareExchange(ref keys[currentIndex], newEntryHash, Empty) == Empty)
                 {
-                    await entry.Semaphore.WaitAsync(cancellationToken);
+                    var semaphore = semaphores[currentIndex];
+                    await semaphore.WaitAsync(cancellationToken);
                     try
                     {
                         return await resultFactory(argument, cancellationToken);
                     }
                     finally
                     {
-                        entry.Semaphore.Release();
+                        semaphore.Release();
                         // Decrement count
                     }
                 }
