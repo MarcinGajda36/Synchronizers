@@ -64,6 +64,11 @@ public class Experiment
                         // Decrement count
                     }
                 }
+                else
+                {
+                    // It was empty but someone reserved it first.
+                    continue;
+                }
             }
             else
             {
