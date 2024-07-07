@@ -6,10 +6,17 @@ using System.Threading.Tasks;
 namespace Synchronizers;
 public class Experiment
 {
-    const ulong Empty = 0b1000000000000000000000000000000000000000000000000000000000000000; // Is that needed?
-    const ulong HashMask = 0b0000000000000000000000000000000011111111111111111111111111111111;
-    const ulong NextMask = 0b0111111111111111000000000000000000000000000000000000000000000000;
-    const ulong RefCountMask = 0b0000000000000000111111111111111100000000000000000000000000000000;
+    const ulong HashMask
+        = 0b0000000000000000000000000000000011111111111111111111111111111111;
+    const ulong NextMask
+        = 0b1111111111111111000000000000000000000000000000000000000000000000;
+    const ulong RefCountMask
+        = 0b0000000000000000111111111111111100000000000000000000000000000000;
+    const ulong AllButRefCountMask
+        = 0b1111111111111111000000000000000011111111111111111111111111111111;
+
+    static readonly int RefCountMaskTrailingZeros = BitOperations.TrailingZeroCount(RefCountMask);
+    static readonly int NextMaskTrailingZeros = BitOperations.TrailingZeroCount(NextMask);
 
     readonly ulong[] keys;
     readonly SemaphoreSlim[] semaphores;
@@ -41,17 +48,19 @@ public class Experiment
     {
         var keyHash = key.GetHashCode();
         var initialIndex = keyHash & keysIndexMask;
-        var jumps = 0;
+        var jumps = 0; // i think i need to inc ref count every jump and remove next only on decrement to 0?
         while (true)
         {
-            var currentIndex = (initialIndex + jumps) & keysIndexMask; // Masks wraps around
+            var currentIndex = (initialIndex + jumps) & keysIndexMask;
             var indexKey = keys[currentIndex];
-            if ((indexKey & Empty) != 0)
+            if (indexKey == 0) // I always need to increment ref count and maintain hash even when initial hasher freed count, or i would let same key to access 2 semaphores.
             {
-                ulong refCount = 1ul << 32;
-                ulong newEntryHash = (ulong)keyHash + refCount;
-                if (Interlocked.CompareExchange(ref keys[currentIndex], newEntryHash, Empty) == Empty)
+                // We found empty spot.
+                ulong refCountOne = 1ul << RefCountMaskTrailingZeros;
+                ulong newEntryKey = (ulong)keyHash + refCountOne; // I can make it OR right?
+                if (Interlocked.CompareExchange(ref keys[currentIndex], newEntryKey, indexKey) == indexKey)
                 {
+                    // We reserved the spot.
                     var semaphore = semaphores[currentIndex];
                     await semaphore.WaitAsync(cancellationToken);
                     try
@@ -61,7 +70,30 @@ public class Experiment
                     finally
                     {
                         semaphore.Release();
-                        // Decrement count
+                        // Decrement count, assuming ref count is still 1 and indexKey hasn't been changed.
+                        var decremented = newEntryKey & NextMask;
+                        indexKey = Interlocked.CompareExchange(ref keys[currentIndex], decremented, newEntryKey);
+                        if (indexKey != newEntryKey)
+                        {
+                            // Failed to decrement, ref count and indexKey can be anything (CompareExchange could fail because of Next).
+                            while (true)
+                            {
+                                var indexKeyCopy = indexKey;
+                                var decrementedRefCount = ((indexKeyCopy & RefCountMask) >> RefCountMaskTrailingZeros) - 1;
+                                decremented = decrementedRefCount == 0ul
+                                    ? 0ul
+                                    : (indexKeyCopy & AllButRefCountMask) | (decrementedRefCount << RefCountMaskTrailingZeros);
+                                indexKey = Interlocked.CompareExchange(ref keys[currentIndex], decremented, indexKeyCopy);
+                                if (indexKey == indexKeyCopy)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // All good.
+                        }
                     }
                 }
                 else
