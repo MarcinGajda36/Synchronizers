@@ -7,11 +7,11 @@ namespace Synchronizers;
 
 /// <summary>
 /// As simple code as it gets.
-/// Modulo for pool index is already cheap but could be a even cheaper.
+/// Modulo for pool index is already cheap but could be a even cheaper with bit operations.
+/// Total concurrency is limited to pool size.
 /// No restrictions on pool size.
-/// Concurrency is limited to pool size.
 /// 
-/// Best for simplicity.
+/// Maybe i should change it to modulo prime like ConcurrentDictionary? 
 /// </summary>
 public sealed class SemaphorePool : IDisposable
 {

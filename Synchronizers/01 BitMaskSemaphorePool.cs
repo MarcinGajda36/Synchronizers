@@ -11,10 +11,9 @@ namespace Synchronizers;
 /// Still simple code, but a little more complex then modulo.
 /// Lowes perf overhead of finding key semaphore i can think of.
 /// Pool size restricted to powers of 2.
-/// Concurrency still is limited to pool size.
+/// Total concurrency is limited to pool size.
 /// 
-/// I like this one.
-///  Still simple and best index finding perf.
+/// It may be most susceptible to hash conflicts? 
 /// </summary>
 public sealed class BitMaskSemaphorePool : IDisposable
 {
@@ -123,6 +122,7 @@ public sealed class BitMaskSemaphorePool : IDisposable
         {
             for (int index = locked.Length - 1; index >= 0; index--)
             {
+                // I didn't saw strict need to release in reverse order, it just seemed cool
                 pool[locked[index]].Release();
             }
         }

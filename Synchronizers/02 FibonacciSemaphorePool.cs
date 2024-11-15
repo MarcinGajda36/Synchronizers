@@ -8,12 +8,10 @@ namespace Synchronizers;
 /// <summary>
 /// Most complex code out of pools.
 /// Perf of finding index seems comparable to modulo.
-/// Fibonacci + bitShift seems nice for hash distribution right?
 /// Pool size restricted to powers of 2.
-/// Concurrency still is limited to pool size.
+/// Total concurrency is limited to pool size.
 /// 
-/// Best hash distributions?
-/// I would need proof that this helps anything before using this one.
+/// Fibonacci hash seems nice for hash distribution right?
 /// </summary>
 public sealed class FibonacciSemaphorePool : IDisposable
 {

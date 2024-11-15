@@ -108,30 +108,6 @@ public class Tests
     }
 
     [Test]
-    public async Task ConcurrentDictionaryOfSemaphores()
-    {
-        int firstSum = 0;
-        int secondSum = 0;
-
-        var synchronizer = new ConcurrentDictionaryRefCountDisposable<int>();
-
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
-        {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
-        {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
-        });
-        await Task.WhenAll(firstSumTask, secondSumTask);
-
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
-    }
-
-    [Test]
     public async Task SynchronizeAsync_SingleKey_ExecutesFunction()
     {
         // Arrange
@@ -214,12 +190,12 @@ public class Tests
     }
 
     [Test]
-    public async Task ConcurrentDictionaryOptimistic()
+    public async Task ConcurrentDictionary_()
     {
         int firstSum = 0;
         int secondSum = 0;
 
-        var synchronizer = new ConcurrentDictionaryOptimistic<int>();
+        var synchronizer = new ConcurrentDictionary<int>();
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
