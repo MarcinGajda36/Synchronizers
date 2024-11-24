@@ -21,6 +21,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
     private static SemaphoreSlim GetOrCreate(ConcurrentDictionary<TKey, CountSemaphorePair> semaphores, TKey key)
     {
         // If i put this loop inside SynchronizeAsync then maybe i can see some additional perf improvements.
+        // Also i am tempted to add SpinWait here but not in Cleanup
         while (true)
         {
             if (semaphores.TryGetValue(key, out var old))
