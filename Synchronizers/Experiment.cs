@@ -34,7 +34,7 @@ public class Experiment
         keys = new ulong[maxDegreeOfParallelism];
         semaphores = new SemaphoreSlim[maxDegreeOfParallelism];
         keysIndexMask = keys.Length - 1;
-        for (int idx = 0; idx < semaphores.Length; idx++)
+        for (var idx = 0; idx < semaphores.Length; idx++)
         {
             semaphores[idx] = new SemaphoreSlim(1, 1);
         }
@@ -57,8 +57,8 @@ public class Experiment
             if (indexKey == 0) // I always need to increment ref count and maintain hash even when initial hasher freed count, or i would let same key to access 2 semaphores.
             {
                 // We found empty spot.
-                ulong refCountOne = 1ul << RefCountMaskTrailingZeros;
-                ulong newEntryKey = (ulong)keyHash + refCountOne; // I can make it OR right?
+                var refCountOne = 1ul << RefCountMaskTrailingZeros;
+                var newEntryKey = (ulong)keyHash + refCountOne; // I can make it OR right?
                 if (Interlocked.CompareExchange(ref keys[currentIndex], newEntryKey, indexKey) == indexKey)
                 {
                     // We reserved the spot.

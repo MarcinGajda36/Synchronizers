@@ -1,55 +1,44 @@
 ﻿namespace Synchronizers;
-
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
-/// <summary>
-/// Still simple code, but a little more complex then modulo.
-/// Lowes perf overhead of finding key semaphore i can think of.
-/// Pool size restricted to powers of 2.
-/// Total concurrency is limited to pool size.
-/// 
-/// It may be most susceptible to hash conflicts? 
-/// </summary>
-public sealed class BitMaskSemaphorePool : IDisposable
+internal abstract class SemaphorePoolBase : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
-    private readonly int poolIndexBitMask;
+    private bool disposedValue;
 
-    public BitMaskSemaphorePool(uint size)
+    protected SemaphorePoolBase(int size)
     {
-        if (size < 2 || BitOperations.IsPow2(size) is false)
+        var error = ValidateSize(size);
+        if (error != null)
         {
-            throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be bigger then 1 and a power of 2.");
+            throw error;
         }
 
-        poolIndexBitMask = (int)size - 1;
-        pool = new SemaphoreSlim[size];
-        for (var index = 0; index < pool.Length; index++)
+        pool = CreatePool(size);
+    }
+
+    protected abstract Exception? ValidateSize(int size);
+    private static SemaphoreSlim[] CreatePool(int size)
+    {
+        var pool = new SemaphoreSlim[size];
+        for (var index = 0; index < pool.Length; ++index)
         {
             pool[index] = new SemaphoreSlim(1, 1);
         }
+        return pool;
     }
 
-    //Program.<<Main>$>g__GetKeyIndex|0_1(System.Guid)
-    //L0000: mov eax, [rcx]
-    //L0002: xor eax, [rcx + 4]
-    //L0005: xor eax, [rcx + 8]
-    //L0008: xor eax, [rcx + 0xc]
-    //L000b: and eax, 0x1f
-    //L000e: ret
-    private int GetKeyIndex<TKey>(TKey key)
-        where TKey : notnull
-        => key.GetHashCode() & poolIndexBitMask;
+    protected abstract int GetKeyIndex<TKey>(TKey key)
+        where TKey : notnull;
 
     public async Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
-        Func<TArgument, CancellationToken, Task<TResult>> func,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
@@ -62,27 +51,7 @@ public sealed class BitMaskSemaphorePool : IDisposable
         }
         finally
         {
-            semaphore.Release();
-        }
-    }
-
-    public async ValueTask<TResult> SynchronizeValueAsync<TKey, TArgument, TResult>(
-        TKey key,
-        TArgument argument,
-        Func<TArgument, CancellationToken, ValueTask<TResult>> func,
-        CancellationToken cancellationToken)
-        where TKey : notnull
-    {
-        var index = GetKeyIndex(key);
-        var semaphore = pool[index];
-        await semaphore.WaitAsync(cancellationToken);
-        try
-        {
-            return await func(argument, cancellationToken);
-        }
-        finally
-        {
-            semaphore.Release();
+            _ = semaphore.Release();
         }
     }
 
@@ -114,31 +83,31 @@ public sealed class BitMaskSemaphorePool : IDisposable
     public async Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
-        Func<TArgument, CancellationToken, Task<TResult>> resultFactory,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
         static void ReleaseLocked(SemaphoreSlim[] pool, Span<int> locked)
         {
-            for (var index = locked.Length - 1; index >= 0; index--)
+            for (var index = locked.Length - 1; index >= 0; --index)
             {
                 // I didn't saw strict need to release in reverse order, it just seemed cool
-                pool[locked[index]].Release();
+                _ = pool[locked[index]].Release();
             }
         }
 
-        var keyIndexes = ArrayPool<int>.Shared.Rent(pool.Length);
+        var pool_ = pool;
+        var keyIndexes = ArrayPool<int>.Shared.Rent(pool_.Length);
         var keyIndexesCount = FillWithKeyIndexes(keys, keyIndexes);
-
-        for (var index = 0; index < keyIndexesCount; index++)
+        for (var index = 0; index < keyIndexesCount; ++index)
         {
             try
             {
-                await pool[keyIndexes[index]].WaitAsync(cancellationToken);
+                await pool_[keyIndexes[index]].WaitAsync(cancellationToken);
             }
             catch
             {
-                ReleaseLocked(pool, keyIndexes.AsSpan(..index));
+                ReleaseLocked(pool_, keyIndexes.AsSpan(..index));
                 ArrayPool<int>.Shared.Return(keyIndexes);
                 throw;
             }
@@ -150,33 +119,34 @@ public sealed class BitMaskSemaphorePool : IDisposable
         }
         finally
         {
-            ReleaseLocked(pool, keyIndexes.AsSpan(..keyIndexesCount));
+            ReleaseLocked(pool_, keyIndexes.AsSpan(..keyIndexesCount));
             ArrayPool<int>.Shared.Return(keyIndexes);
         }
     }
 
     public async Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
-        Func<TArgument, CancellationToken, Task<TResult>> resultFactory,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
         static void ReleaseAll(SemaphoreSlim[] pool, int index)
         {
-            for (var toRelease = index; toRelease >= 0; toRelease--)
+            for (var toRelease = index; toRelease >= 0; --toRelease)
             {
-                pool[toRelease].Release();
+                _ = pool[toRelease].Release();
             }
         }
 
-        for (var index = 0; index < pool.Length; index++)
+        var pool_ = pool;
+        for (var index = 0; index < pool_.Length; ++index)
         {
             try
             {
-                await pool[index].WaitAsync(cancellationToken);
+                await pool_[index].WaitAsync(cancellationToken);
             }
             catch
             {
-                ReleaseAll(pool, index - 1);
+                ReleaseAll(pool_, index - 1);
                 throw;
             }
         }
@@ -187,10 +157,27 @@ public sealed class BitMaskSemaphorePool : IDisposable
         }
         finally
         {
-            ReleaseAll(pool, pool.Length - 1);
+            ReleaseAll(pool_, pool_.Length - 1);
+        }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                Array.ForEach(pool, semaphore => semaphore.Dispose());
+            }
+
+            disposedValue = true;
         }
     }
 
     public void Dispose()
-        => Array.ForEach(pool, semaphore => semaphore.Dispose());
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 }

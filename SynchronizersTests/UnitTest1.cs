@@ -12,10 +12,34 @@ public class Tests
     private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001);
 
     [Test]
+    public async Task SemaphorePool_Size1()
+    {
+        var firstSum = 0;
+        var secondSum = 0;
+
+        var synchronizer = new SemaphorePool(1);
+
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        {
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+        });
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        {
+            await Task.Delay(1, _);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+        });
+        await Task.WhenAll(firstSumTask, secondSumTask);
+
+        Assert.That(firstSum, Is.EqualTo(secondSum));
+        Assert.That(firstSum, Is.EqualTo(0));
+    }
+
+    [Test]
     public async Task SemaphorePool()
     {
-        int firstSum = 0;
-        int secondSum = 0;
+        var firstSum = 0;
+        var secondSum = 0;
 
         var synchronizer = new SemaphorePool(69);
 
@@ -38,8 +62,8 @@ public class Tests
     [Test]
     public async Task BitMaskSemaphorePool()
     {
-        int firstSum = 0;
-        int secondSum = 0;
+        var firstSum = 0;
+        var secondSum = 0;
 
         var synchronizer = new BitMaskSemaphorePool(32);
 
@@ -62,8 +86,8 @@ public class Tests
     [Test]
     public async Task FibonacciSemaphorePool()
     {
-        int firstSum = 0;
-        int secondSum = 0;
+        var firstSum = 0;
+        var secondSum = 0;
 
         var synchronizer = new FibonacciSemaphorePool(32);
 
@@ -86,8 +110,8 @@ public class Tests
     [Test]
     public async Task DictionaryOfSemaphores()
     {
-        int firstSum = 0;
-        int secondSum = 0;
+        var firstSum = 0;
+        var secondSum = 0;
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
@@ -192,8 +216,8 @@ public class Tests
     [Test]
     public async Task ConcurrentDictionary_()
     {
-        int firstSum = 0;
-        int secondSum = 0;
+        var firstSum = 0;
+        var secondSum = 0;
 
         var synchronizer = new ConcurrentDictionary<int>();
 

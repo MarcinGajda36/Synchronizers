@@ -27,7 +27,7 @@ public sealed class FibonacciSemaphorePool : IDisposable
 
         poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(size);
         pool = new SemaphoreSlim[size];
-        for (int index = 0; index < pool.Length; index++)
+        for (var index = 0; index < pool.Length; index++)
         {
             pool[index] = new SemaphoreSlim(1, 1);
         }

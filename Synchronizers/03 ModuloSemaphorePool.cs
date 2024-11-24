@@ -17,15 +17,15 @@ public sealed class SemaphorePool : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
 
-    public SemaphorePool(int size)
+    public SemaphorePool(int size = 31)
     {
-        if (size < 2)
+        if (size < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 2.");
+            throw new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1.");
         }
 
         pool = new SemaphoreSlim[size];
-        for (int index = 0; index < pool.Length; index++)
+        for (var index = 0; index < pool.Length; index++)
         {
             pool[index] = new SemaphoreSlim(1, 1);
         }
@@ -48,7 +48,7 @@ public sealed class SemaphorePool : IDisposable
     public async Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
-        Func<TArgument, CancellationToken, Task<TResult>> func,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
@@ -87,7 +87,7 @@ public sealed class SemaphorePool : IDisposable
         }
 
         var locked = new Stack<int>(indexes.Count);
-        foreach (int toLock in indexes)
+        foreach (var toLock in indexes)
         {
             try
             {
