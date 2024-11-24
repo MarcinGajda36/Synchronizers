@@ -6,18 +6,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-// Pros:
-//  Lowest possible signal-to-noise
-//  When you want to swap implementation you already have abstraction to assign implementations to
-//
-// Cons:
-//  abstract + generic of 'GetKeyIndex(...)' is high runtime perf cost right? I think it uses ConcurrentDictionary<> on runtime.
+//  abstract + generic like 'GetKeyIndex(...)' is high runtime perf cost right? I heard it uses ConcurrentDictionaryOfSemaphores<> on runtime.
 public abstract class SemaphorePool : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
     private bool disposedValue;
 
-    public int Size => pool.Length;
+    public int Size { get; }
 
     protected SemaphorePool(int size)
     {
@@ -28,6 +23,7 @@ public abstract class SemaphorePool : IDisposable
         }
 
         pool = CreatePool(size);
+        Size = size;
     }
 
     protected virtual Exception? ValidateSize(int size)
@@ -68,6 +64,22 @@ public abstract class SemaphorePool : IDisposable
             _ = semaphore.Release();
         }
     }
+
+    public Task SynchronizeAsync<TKey, TArgument>(
+        TKey key,
+        TArgument argument,
+        Func<TArgument, CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeAsync(
+            key,
+            (argument, func),
+            static async (arguments, cancellationToken) =>
+            {
+                await arguments.func(arguments.argument, cancellationToken);
+                return true;
+            },
+            cancellationToken);
 
     private int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int[] keysIndexes)
         where TKey : notnull
@@ -139,6 +151,22 @@ public abstract class SemaphorePool : IDisposable
         }
     }
 
+    public Task SynchronizeManyAsync<TKey, TArgument>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Func<TArgument, CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeManyAsync(
+            keys,
+            (argument, func),
+            static async (arguments, cancellationToken) =>
+            {
+                await arguments.func(arguments.argument, cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
     public async Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -176,6 +204,20 @@ public abstract class SemaphorePool : IDisposable
             ReleaseAll(pool_, pool_.Length - 1);
         }
     }
+
+    public Task SynchronizeAllAsync<TKey, TArgument>(
+        TArgument argument,
+        Func<TArgument, CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeAllAsync(
+            (argument, func),
+            static async (arguments, cancellationToken) =>
+            {
+                await arguments.func(arguments.argument, cancellationToken);
+                return true;
+            },
+            cancellationToken);
 
     protected virtual void Dispose(bool disposing)
     {

@@ -6,6 +6,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Unbounded parallelism.
+/// Uses lock to grab semaphore for key.
+/// Allows to enter synchronized section for key B inside synchronized section of key A.
+/// </summary>
 public class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     where TKey : notnull
 {
@@ -44,7 +49,7 @@ public class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityCompa
             if (count == 1)
             {
                 pair.Semaphore.Dispose();
-                semaphores.Remove(key);
+                _ = semaphores.Remove(key);
             }
             else
             {
@@ -67,7 +72,7 @@ public class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityCompa
         }
         finally
         {
-            semaphore.Release();
+            _ = semaphore.Release();
             Cleanup(key);
         }
     }

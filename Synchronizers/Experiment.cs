@@ -70,7 +70,7 @@ public class Experiment
                     }
                     finally
                     {
-                        semaphore.Release();
+                        _ = semaphore.Release();
                         // Decrement count, assuming ref count is still 1 and indexKey hasn't been changed.
                         var decremented = newEntryKey & NextMask;
                         indexKey = Interlocked.CompareExchange(ref keys[currentIndex], decremented, newEntryKey);

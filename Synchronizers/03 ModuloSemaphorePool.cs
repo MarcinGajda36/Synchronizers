@@ -1,11 +1,8 @@
 ﻿namespace Synchronizers;
+
 /// <summary>
-/// As simple code as it gets.
-/// Modulo for pool index is already cheap but could be a even cheaper with bit operations.
 /// Total concurrency is limited to pool size.
-/// No restrictions on pool size.
-/// 
-/// Maybe i should change it to modulo prime like ConcurrentDictionary? 
+/// No restrictions on pool size, but prime numbers are the best for hash distribution.
 /// </summary>
 public sealed class ModuloSemaphorePool(int size = 31)
     : SemaphorePool(size)

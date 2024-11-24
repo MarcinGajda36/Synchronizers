@@ -31,8 +31,11 @@ public class Tests
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -55,8 +58,11 @@ public class Tests
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -79,8 +85,11 @@ public class Tests
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -103,8 +112,11 @@ public class Tests
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -127,8 +139,11 @@ public class Tests
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -195,9 +210,9 @@ public class Tests
 
         Assert.Multiple(() =>
         {
-            Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            _ = Assert.ThrowsAsync<TaskCanceledException>(async () =>
             {
-                await synchronizer.SynchronizeAsync(
+                _ = await synchronizer.SynchronizeAsync(
                     1,
                     "_",
                     async (_, cancellationToken) =>
@@ -219,7 +234,7 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new ConcurrentDictionary<int>();
+        var synchronizer = new ConcurrentDictionaryOfSemaphores<int>();
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -233,7 +248,10 @@ public class Tests
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
-        Assert.That(firstSum, Is.EqualTo(secondSum));
-        Assert.That(firstSum, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
     }
 }

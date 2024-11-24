@@ -4,12 +4,9 @@ using System;
 using System.Numerics;
 
 /// <summary>
-/// Still simple code, but a little more complex then modulo.
-/// Lowes perf overhead of finding key semaphore i can think of.
-/// Pool size restricted to powers of 2.
 /// Total concurrency is limited to pool size.
-/// 
-/// It may be most susceptible to hash conflicts? 
+/// Lowes perf overhead of finding key semaphore i can think of.
+/// It may be most susceptible to hash conflicts.
 /// </summary>
 public sealed class BitMaskSemaphorePool(int size = 32) : SemaphorePool(size)
 {

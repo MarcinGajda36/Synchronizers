@@ -4,12 +4,8 @@ using System;
 using System.Numerics;
 
 /// <summary>
-/// Most complex code out of pools.
-/// Perf of finding index seems comparable to modulo.
-/// Pool size restricted to powers of 2.
 /// Total concurrency is limited to pool size.
-/// 
-/// Fibonacci hash seems nice for hash distribution right?
+/// Fibonacci hash seems nice for balance of hash distribution and perf.
 /// </summary>
 public sealed class FibonacciSemaphorePool(int size = 32) : SemaphorePool(size)
 {
