@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-//  abstract + generic like 'GetKeyIndex(...)' is high runtime perf cost right? I heard it uses ConcurrentDictionaryOfSemaphores<> on runtime.
+//  abstract + generic like 'GetKeyIndex(...)' is high runtime perf cost right? I heard it uses ConcurrentDictionary<> on runtime.
 public abstract class SemaphorePool : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
