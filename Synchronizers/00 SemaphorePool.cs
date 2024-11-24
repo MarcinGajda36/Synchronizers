@@ -205,11 +205,10 @@ public abstract class SemaphorePool : IDisposable
         }
     }
 
-    public Task SynchronizeAllAsync<TKey, TArgument>(
+    public Task SynchronizeAllAsync<TArgument>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
-        where TKey : notnull
         => SynchronizeAllAsync(
             (argument, func),
             static async (arguments, cancellationToken) =>

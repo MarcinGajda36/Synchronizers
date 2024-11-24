@@ -7,7 +7,8 @@ using System.Numerics;
 /// Total concurrency is limited to pool size.
 /// Fibonacci hash seems nice for balance of hash distribution and perf.
 /// </summary>
-public sealed class FibonacciSemaphorePool(int size = 32) : SemaphorePool(size)
+public sealed class FibonacciSemaphorePool(int size = 32)
+    : SemaphorePool(size)
 {
     private readonly int poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(size);
 

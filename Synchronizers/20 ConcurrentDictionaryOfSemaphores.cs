@@ -21,12 +21,13 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
     private SemaphoreSlim GetOrCreate(TKey key)
     {
         // If i put this loop inside SynchronizeAsync then maybe i can see some additional perf improvements.
+        var semaphores_ = semaphores;
         while (true)
         {
-            if (semaphores.TryGetValue(key, out var old))
+            if (semaphores_.TryGetValue(key, out var old))
             {
                 var incremented = old with { Count = old.Count + 1 };
-                if (semaphores.TryUpdate(key, incremented, old))
+                if (semaphores_.TryUpdate(key, incremented, old))
                 {
                     return old.Semaphore;
                 }
@@ -34,7 +35,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
             else
             {
                 var @new = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
-                if (semaphores.TryAdd(key, @new))
+                if (semaphores_.TryAdd(key, @new))
                 {
                     return @new.Semaphore;
                 }
@@ -49,13 +50,14 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
     // There is a choice here between passing only key and staring from value lookup or passing pair and trying to update with it.
     private void Cleanup(TKey key)
     {
+        var semaphores_ = semaphores;
         while (true)
         {
-            var old = semaphores[key];
+            var old = semaphores_[key];
             if (old.Count == 1)
             {
                 var toRemove = KeyValuePair.Create(key, old);
-                if (semaphores.TryRemove(toRemove))
+                if (semaphores_.TryRemove(toRemove))
                 {
                     old.Semaphore.Dispose();
                     return;
@@ -64,7 +66,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
             else
             {
                 var decremented = old with { Count = old.Count - 1 };
-                if (semaphores.TryUpdate(key, decremented, old))
+                if (semaphores_.TryUpdate(key, decremented, old))
                 {
                     return;
                 }

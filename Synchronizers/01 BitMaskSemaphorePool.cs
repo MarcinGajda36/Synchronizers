@@ -8,7 +8,8 @@ using System.Numerics;
 /// Lowes perf overhead of finding key semaphore i can think of.
 /// It may be most susceptible to hash conflicts.
 /// </summary>
-public sealed class BitMaskSemaphorePool(int size = 32) : SemaphorePool(size)
+public sealed class BitMaskSemaphorePool(int size = 32)
+    : SemaphorePool(size)
 {
     private readonly int poolIndexBitMask = size - 1;
 

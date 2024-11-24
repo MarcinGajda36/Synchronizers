@@ -24,9 +24,10 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
 
     private SemaphoreSlim GetOrCreate(TKey key)
     {
-        lock (semaphores)
+        var semaphores_ = semaphores;
+        lock (semaphores_)
         {
-            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
+            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores_, key, out var exists);
             if (exists)
             {
                 ++pair.Count;
@@ -42,14 +43,15 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
 
     private void Cleanup(TKey key)
     {
-        lock (semaphores)
+        var semaphores_ = semaphores;
+        lock (semaphores_)
         {
-            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
+            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores_, key);
             ref var count = ref pair.Count;
             if (count == 1)
             {
                 pair.Semaphore.Dispose();
-                _ = semaphores.Remove(key);
+                _ = semaphores_.Remove(key);
             }
             else
             {
