@@ -6,14 +6,20 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-public abstract class SemaphorePoolBase : IDisposable
+// Pros:
+//  Lowest possible signal-to-noise
+//  When you want to swap implementation you already have abstraction to assign implementations to
+//
+// Cons:
+//  abstract + generic of 'GetKeyIndex(...)' is high runtime perf cost right? I think it uses ConcurrentDictionary<> on runtime.
+public abstract class SemaphorePool : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
     private bool disposedValue;
 
-    public int PoolSize => pool.Length;
+    public int Size => pool.Length;
 
-    protected SemaphorePoolBase(int size)
+    protected SemaphorePool(int size)
     {
         var error = ValidateSize(size);
         if (error != null)

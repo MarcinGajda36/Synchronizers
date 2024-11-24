@@ -8,14 +8,12 @@ using System.Threading.Tasks;
 
 // Maximizes parallelism?
 // Dictionaries also make it safe to use SynchronizeAsync inside of other key SynchronizeAsync and pools could dead-lock on it.
-public class ConcurrentDictionary<TKey>
+public class ConcurrentDictionary<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     where TKey : notnull
 {
-    private readonly record struct CountSemaphorePair(nint Count, SemaphoreSlim Semaphore);
-    private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores;
+    private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
 
-    public ConcurrentDictionary(IEqualityComparer<TKey>? equalityComparer = null)
-        => semaphores = new(equalityComparer);
+    private readonly record struct CountSemaphorePair(nint Count, SemaphoreSlim Semaphore);
 
     private SemaphoreSlim GetOrCreate(TKey key)
     {

@@ -7,8 +7,8 @@
 /// 
 /// Maybe i should change it to modulo prime like ConcurrentDictionary? 
 /// </summary>
-public sealed class InheritanceModuloSemaphorePool(int size = 31)
-    : SemaphorePoolBase(size)
+public sealed class ModuloSemaphorePool(int size = 31)
+    : SemaphorePool(size)
 {
     //Program.<<Main>$>g__GetKeyIndex|0_0(System.Guid, <>c__DisplayClass0_0 ByRef)
     //L0000: mov eax, [rcx]
@@ -21,6 +21,6 @@ public sealed class InheritanceModuloSemaphorePool(int size = 31)
     //L0012: mov eax, edx
     //L0014: ret
     protected override int GetKeyIndex<TKey>(TKey key)
-        => key.GetHashCode() % PoolSize;
+        => key.GetHashCode() % Size;
 
 }
