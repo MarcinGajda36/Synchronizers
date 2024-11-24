@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 /// Uses optimistic-locking to grab semaphore for key.
 /// Allows to enter synchronized section for key B inside synchronized section of key A.
 /// </summary>
-public class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
+public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     where TKey : notnull
 {
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
