@@ -22,12 +22,11 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
         public readonly SemaphoreSlim Semaphore = semaphore;
     }
 
-    private SemaphoreSlim GetOrCreate(TKey key)
+    private static SemaphoreSlim GetOrCreate(Dictionary<TKey, CountSemaphorePair> semaphores, TKey key)
     {
-        var semaphores_ = semaphores;
-        lock (semaphores_)
+        lock (semaphores)
         {
-            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores_, key, out var exists);
+            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
             if (exists)
             {
                 ++pair.Count;
@@ -41,17 +40,16 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
         }
     }
 
-    private void Cleanup(TKey key)
+    private static void Cleanup(Dictionary<TKey, CountSemaphorePair> semaphores, TKey key)
     {
-        var semaphores_ = semaphores;
-        lock (semaphores_)
+        lock (semaphores)
         {
-            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores_, key);
+            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
             ref var count = ref pair.Count;
             if (count == 1)
             {
                 pair.Semaphore.Dispose();
-                _ = semaphores_.Remove(key);
+                _ = semaphores.Remove(key);
             }
             else
             {
@@ -66,7 +64,8 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
         Func<TArgument, CancellationToken, ValueTask<TResult>> func,
         CancellationToken cancellationToken = default)
     {
-        var semaphore = GetOrCreate(key);
+        var semaphores_ = semaphores;
+        var semaphore = GetOrCreate(semaphores_, key);
         await semaphore.WaitAsync(cancellationToken);
         try
         {
@@ -75,7 +74,7 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
         finally
         {
             _ = semaphore.Release();
-            Cleanup(key);
+            Cleanup(semaphores_, key);
         }
     }
 

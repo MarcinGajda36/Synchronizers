@@ -18,16 +18,15 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
 
     private readonly record struct CountSemaphorePair(int Count, SemaphoreSlim Semaphore);
 
-    private SemaphoreSlim GetOrCreate(TKey key)
+    private static SemaphoreSlim GetOrCreate(ConcurrentDictionary<TKey, CountSemaphorePair> semaphores, TKey key)
     {
         // If i put this loop inside SynchronizeAsync then maybe i can see some additional perf improvements.
-        var semaphores_ = semaphores;
         while (true)
         {
-            if (semaphores_.TryGetValue(key, out var old))
+            if (semaphores.TryGetValue(key, out var old))
             {
                 var incremented = old with { Count = old.Count + 1 };
-                if (semaphores_.TryUpdate(key, incremented, old))
+                if (semaphores.TryUpdate(key, incremented, old))
                 {
                     return old.Semaphore;
                 }
@@ -35,7 +34,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
             else
             {
                 var @new = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
-                if (semaphores_.TryAdd(key, @new))
+                if (semaphores.TryAdd(key, @new))
                 {
                     return @new.Semaphore;
                 }
@@ -48,16 +47,15 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
     }
 
     // There is a choice here between passing only key and staring from value lookup or passing pair and trying to update with it.
-    private void Cleanup(TKey key)
+    private static void Cleanup(ConcurrentDictionary<TKey, CountSemaphorePair> semaphores, TKey key)
     {
-        var semaphores_ = semaphores;
         while (true)
         {
-            var old = semaphores_[key];
+            var old = semaphores[key];
             if (old.Count == 1)
             {
                 var toRemove = KeyValuePair.Create(key, old);
-                if (semaphores_.TryRemove(toRemove))
+                if (semaphores.TryRemove(toRemove))
                 {
                     old.Semaphore.Dispose();
                     return;
@@ -66,7 +64,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
             else
             {
                 var decremented = old with { Count = old.Count - 1 };
-                if (semaphores_.TryUpdate(key, decremented, old))
+                if (semaphores.TryUpdate(key, decremented, old))
                 {
                     return;
                 }
@@ -80,7 +78,8 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
         Func<TArgument, CancellationToken, ValueTask<TResult>> func,
         CancellationToken cancellationToken = default)
     {
-        var semaphore = GetOrCreate(key);
+        var semaphores_ = semaphores;
+        var semaphore = GetOrCreate(semaphores_, key);
         await semaphore.WaitAsync(cancellationToken);
         try
         {
@@ -89,7 +88,7 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
         finally
         {
             _ = semaphore.Release();
-            Cleanup(key);
+            Cleanup(semaphores_, key);
         }
     }
 
