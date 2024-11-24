@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal abstract class SemaphorePoolBase : IDisposable
+public abstract class SemaphorePoolBase : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
     private bool disposedValue;
+
+    public int PoolSize => pool.Length;
 
     protected SemaphorePoolBase(int size)
     {
@@ -22,7 +24,11 @@ internal abstract class SemaphorePoolBase : IDisposable
         pool = CreatePool(size);
     }
 
-    protected abstract Exception? ValidateSize(int size);
+    protected virtual Exception? ValidateSize(int size)
+        => size < 1
+        ? new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1.")
+        : null;
+
     private static SemaphoreSlim[] CreatePool(int size)
     {
         var pool = new SemaphoreSlim[size];
@@ -43,6 +49,7 @@ internal abstract class SemaphorePoolBase : IDisposable
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        CheckDispose();
         var index = GetKeyIndex(key);
         var semaphore = pool[index];
         await semaphore.WaitAsync(cancellationToken);
@@ -97,6 +104,7 @@ internal abstract class SemaphorePoolBase : IDisposable
             }
         }
 
+        CheckDispose();
         var pool_ = pool;
         var keyIndexes = ArrayPool<int>.Shared.Rent(pool_.Length);
         var keyIndexesCount = FillWithKeyIndexes(keys, keyIndexes);
@@ -138,6 +146,7 @@ internal abstract class SemaphorePoolBase : IDisposable
             }
         }
 
+        CheckDispose();
         var pool_ = pool;
         for (var index = 0; index < pool_.Length; ++index)
         {
@@ -181,4 +190,7 @@ internal abstract class SemaphorePoolBase : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
+    private void CheckDispose()
+        => ObjectDisposedException.ThrowIf(disposedValue, this);
 }
