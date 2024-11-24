@@ -1,4 +1,4 @@
-﻿namespace Synchronizers;
+﻿namespace PerKeySynchronizers;
 
 using System;
 using System.Collections.Concurrent;

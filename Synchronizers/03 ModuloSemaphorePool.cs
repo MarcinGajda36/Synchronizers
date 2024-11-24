@@ -1,4 +1,4 @@
-﻿namespace Synchronizers;
+﻿namespace PerKeySynchronizers;
 
 /// <summary>
 /// Total concurrency is limited to pool size.

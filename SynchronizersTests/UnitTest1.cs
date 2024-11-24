@@ -1,11 +1,11 @@
-namespace SynchronizersTests;
+namespace PerKeySynchronizersTests;
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Synchronizers;
+using PerKeySynchronizers;
 
 public class Tests
 {

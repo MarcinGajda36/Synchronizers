@@ -1,11 +1,11 @@
-﻿namespace Synchronizers;
+﻿namespace PerKeySynchronizers;
 
 using System;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Experiment
+internal class Experiment
 {
     const ulong NextMask
         = 0b1111111111111111000000000000000000000000000000000000000000000000;
