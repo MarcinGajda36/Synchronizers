@@ -52,6 +52,11 @@ internal class Experiment
         var jumps = 0; // i think i need to inc ref count every jump and remove next only on decrement to 0?
         while (true)
         {
+            if (jumps == semaphores.Length)
+            {
+                // What now?
+            }
+
             var currentIndex = (initialIndex + jumps) & keysIndexMask;
             var indexKey = keys[currentIndex];
             if (indexKey == 0) // I always need to increment ref count and maintain hash even when initial hasher freed count, or i would let same key to access 2 semaphores.
