@@ -1,9 +1,9 @@
-﻿using System;
+﻿namespace Synchronizers;
+
+using System;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Synchronizers;
 
 /// <summary>
 /// Most complex code out of pools.

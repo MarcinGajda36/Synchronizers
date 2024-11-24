@@ -1,10 +1,10 @@
-﻿using System;
+﻿namespace Synchronizers;
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Synchronizers;
 
 // Maximizes parallelism?
 // Dictionaries also make it safe to use SynchronizeAsync inside of other key SynchronizeAsync and pools could dead-lock on it.

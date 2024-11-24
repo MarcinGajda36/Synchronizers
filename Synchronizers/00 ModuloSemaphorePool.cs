@@ -1,9 +1,9 @@
-﻿using System;
+﻿namespace Synchronizers;
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Synchronizers;
 
 /// <summary>
 /// As simple code as it gets.

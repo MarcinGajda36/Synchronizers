@@ -1,11 +1,11 @@
-﻿using System;
+﻿namespace Synchronizers;
+
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Synchronizers;
 
 /// <summary>
 /// Still simple code, but a little more complex then modulo.

@@ -1,28 +1,21 @@
-﻿using System;
+﻿namespace Synchronizers;
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Synchronizers;
-public class DictionaryOfSemaphores<TKey>
+public class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     where TKey : notnull
 {
-    private struct CountSemaphorePair
+    private readonly Dictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
+
+    private struct CountSemaphorePair(int count, SemaphoreSlim semaphore)
     {
-        public nuint Count;
-        public readonly SemaphoreSlim Semaphore;
-
-        public CountSemaphorePair(nuint count, SemaphoreSlim semaphore)
-        {
-            Count = count;
-            Semaphore = semaphore;
-        }
+        public int Count = count;
+        public readonly SemaphoreSlim Semaphore = semaphore;
     }
-    private readonly Dictionary<TKey, CountSemaphorePair> semaphores;
-
-    public DictionaryOfSemaphores(IEqualityComparer<TKey>? equalityComparer = null)
-        => semaphores = new(equalityComparer);
 
     private SemaphoreSlim GetOrCreate(TKey key)
     {
@@ -30,9 +23,13 @@ public class DictionaryOfSemaphores<TKey>
         {
             ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
             if (exists)
+            {
                 ++pair.Count;
+            }
             else
+            {
                 pair = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
+            }
 
             return pair.Semaphore;
         }
@@ -43,14 +40,15 @@ public class DictionaryOfSemaphores<TKey>
         lock (semaphores)
         {
             ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
-            if (pair.Count == 1)
+            ref var count = ref pair.Count;
+            if (count == 1)
             {
                 pair.Semaphore.Dispose();
                 semaphores.Remove(key);
             }
             else
             {
-                --pair.Count;
+                --count;
             }
         }
     }
@@ -58,7 +56,7 @@ public class DictionaryOfSemaphores<TKey>
     public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
-        Func<TArgument, CancellationToken, Task<TResult>> func,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> func,
         CancellationToken cancellationToken = default)
     {
         var semaphore = GetOrCreate(key);
@@ -77,7 +75,7 @@ public class DictionaryOfSemaphores<TKey>
     public Task SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
-        Func<TArgument, CancellationToken, Task> func,
+        Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         => SynchronizeAsync(
             key,
