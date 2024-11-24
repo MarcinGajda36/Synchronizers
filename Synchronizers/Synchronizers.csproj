@@ -1,11 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <DebugType>embedded</DebugType>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Marcin Gajda</Authors>
+    <PackageProjectUrl>https://github.com/MarcinGajda36/Synchronizers</PackageProjectUrl>
+    <Description>Helpers to deal with parallelism.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsTrimmable>True</IsTrimmable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsTrimmable>True</IsTrimmable>
   </PropertyGroup>
 
 </Project>
