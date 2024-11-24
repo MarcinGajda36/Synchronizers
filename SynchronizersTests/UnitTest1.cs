@@ -17,7 +17,7 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new SemaphorePool(1);
+        var synchronizer = new ModuloSemaphorePool(1);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {
@@ -41,7 +41,7 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new SemaphorePool(69);
+        var synchronizer = new ModuloSemaphorePool(69);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
         {

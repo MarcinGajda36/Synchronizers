@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 /// 
 /// Maybe i should change it to modulo prime like ConcurrentDictionary? 
 /// </summary>
-public sealed class SemaphorePool : IDisposable
+public sealed class ModuloSemaphorePool : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
 
-    public SemaphorePool(int size = 31)
+    public ModuloSemaphorePool(int size = 31)
     {
         if (size < 1)
         {
