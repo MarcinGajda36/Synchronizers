@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -10,6 +10,7 @@
     <Authors>Marcin Gajda</Authors>
     <PackageProjectUrl>https://github.com/MarcinGajda36/Synchronizers</PackageProjectUrl>
     <Description>Helpers to deal with parallelism.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
