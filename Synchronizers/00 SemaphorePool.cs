@@ -7,7 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 //  abstract + generic like 'GetKeyIndex(...)' is high runtime perf cost right? I heard it uses ConcurrentDictionary<> on runtime.
-public abstract class SemaphorePool : IDisposable
+public abstract class SemaphorePool
+    : IDisposable
 {
     private readonly SemaphoreSlim[] pool;
     private bool disposedValue;

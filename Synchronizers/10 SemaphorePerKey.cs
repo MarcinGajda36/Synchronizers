@@ -1,62 +1,14 @@
 ﻿namespace PerKeySynchronizers;
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-/// <summary>
-/// Unbounded parallelism.
-/// Uses lock to grab semaphore for key.
-/// Allows to enter synchronized section for key B inside synchronized section of key A.
-/// </summary>
-public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
+public abstract class SemaphorePerKey<TKey>
     where TKey : notnull
 {
-    private readonly Dictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
-
-    private struct CountSemaphorePair(int count, SemaphoreSlim semaphore)
-    {
-        public int Count = count;
-        public readonly SemaphoreSlim Semaphore = semaphore;
-    }
-
-    private static SemaphoreSlim GetOrCreate(Dictionary<TKey, CountSemaphorePair> semaphores, TKey key)
-    {
-        lock (semaphores)
-        {
-            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
-            if (exists)
-            {
-                ++pair.Count;
-            }
-            else
-            {
-                pair = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
-            }
-
-            return pair.Semaphore;
-        }
-    }
-
-    private static void Cleanup(Dictionary<TKey, CountSemaphorePair> semaphores, TKey key)
-    {
-        lock (semaphores)
-        {
-            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
-            ref var count = ref pair.Count;
-            if (count == 1)
-            {
-                pair.Semaphore.Dispose();
-                _ = semaphores.Remove(key);
-            }
-            else
-            {
-                --count;
-            }
-        }
-    }
+    protected abstract SemaphoreSlim GetOrCreate(TKey key);
+    protected abstract void Cleanup(TKey key);
 
     public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
@@ -64,8 +16,7 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
         Func<TArgument, CancellationToken, ValueTask<TResult>> func,
         CancellationToken cancellationToken = default)
     {
-        var semaphores_ = semaphores;
-        var semaphore = GetOrCreate(semaphores_, key);
+        var semaphore = GetOrCreate(key);
         await semaphore.WaitAsync(cancellationToken);
         try
         {
@@ -74,7 +25,7 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
         finally
         {
             _ = semaphore.Release();
-            Cleanup(semaphores_, key);
+            Cleanup(key);
         }
     }
 
