@@ -81,6 +81,32 @@ public abstract class SemaphorePool : IDisposable
             },
             cancellationToken);
 
+    public Task<TResult> SynchronizeAsync<TKey, TResult>(
+        TKey key,
+        Func<CancellationToken, ValueTask<TResult>> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeAsync(
+            key,
+            func,
+            static (func, token) => func(token),
+            cancellationToken);
+
+    public Task SynchronizeAsync<TKey>(
+        TKey key,
+        Func<CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeAsync(
+            key,
+            func,
+            static async (func, token) =>
+            {
+                await func(token);
+                return true;
+            },
+            cancellationToken);
+
     private int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int[] keysIndexes)
         where TKey : notnull
     {
@@ -167,6 +193,32 @@ public abstract class SemaphorePool : IDisposable
             },
             cancellationToken);
 
+    public Task<TResult> SynchronizeManyAsync<TKey, TResult>(
+        IEnumerable<TKey> keys,
+        Func<CancellationToken, ValueTask<TResult>> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeManyAsync(
+            keys,
+            resultFactory,
+            static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
+            cancellationToken);
+
+    public Task SynchronizeManyAsync<TKey>(
+        IEnumerable<TKey> keys,
+        Func<CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeManyAsync(
+            keys,
+            func,
+            static async (func, cancellationToken) =>
+            {
+                await func(cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
     public async Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -214,6 +266,26 @@ public abstract class SemaphorePool : IDisposable
             static async (arguments, cancellationToken) =>
             {
                 await arguments.func(arguments.argument, cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
+    public Task<TResult> SynchronizeAllAsync<TResult>(
+        Func<CancellationToken, ValueTask<TResult>> resultFactory,
+        CancellationToken cancellationToken = default)
+        => SynchronizeAllAsync(
+            resultFactory,
+            static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
+            cancellationToken);
+
+    public Task SynchronizeAllAsync(
+        Func<CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        => SynchronizeAllAsync(
+            func,
+            static async (func, cancellationToken) =>
+            {
+                await func(cancellationToken);
                 return true;
             },
             cancellationToken);
