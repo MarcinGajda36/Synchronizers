@@ -2,6 +2,7 @@ This project is release as nuget package: https://www.nuget.org/packages/PerKeyS
 Main types: BitMaskSemaphorePool, FibonacciSemaphorePool, ModuloSemaphorePool, DictionaryOfSemaphores, ConcurrentDictionaryOfSemaphores
 
 example use case:
+```C#
   private static readonly DictionaryOfSemaphores<Guid> semaphores = new();
   
   await semaphores.SynchronizeAsync(
@@ -13,3 +14,4 @@ example use case:
       tenantState.SomethingCount = tenantState.SomethingCount + 1;
     },
     cancellationToken);
+```
