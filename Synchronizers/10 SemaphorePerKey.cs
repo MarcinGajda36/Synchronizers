@@ -17,14 +17,20 @@ public abstract class SemaphorePerKey<TKey>
         CancellationToken cancellationToken = default)
     {
         var semaphore = GetOrCreate(key);
-        await semaphore.WaitAsync(cancellationToken);
         try
         {
-            return await func(argument, cancellationToken);
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await func(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
         }
         finally
         {
-            _ = semaphore.Release();
             Cleanup(key);
         }
     }
