@@ -92,4 +92,28 @@ public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equali
                 return true;
             },
             cancellationToken);
+
+    public Task<TResult> SynchronizeAsync<TResult>(
+        TKey key,
+        Func<CancellationToken, ValueTask<TResult>> func,
+        CancellationToken cancellationToken = default)
+        => SynchronizeAsync(
+            key,
+            func,
+            static (func, token) => func(token),
+            cancellationToken);
+
+    public Task SynchronizeAsync(
+        TKey key,
+        Func<CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        => SynchronizeAsync(
+            key,
+            func,
+            static async (func, token) =>
+            {
+                await func(token);
+                return true;
+            },
+            cancellationToken);
 }
