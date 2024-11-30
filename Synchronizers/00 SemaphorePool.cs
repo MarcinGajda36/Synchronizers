@@ -44,8 +44,10 @@ public abstract class SemaphorePool
     // I want to try, maybe benchmark?
     // 1) Func<TKey, int>
     // 2) '0 cost abstraction' default(TKeyIndexStrategy).GetKeyIndex(TArgument argument, TKey key)
-    // 3) static abstract
+    //  this would make methods here protected and caller forwards to here with some generic?
+    // 3) static abstract, just to learn
     // 4) code inlining = copy + paste
+    // 5) take int indexes here, leave TKey to subclasses
     protected abstract int GetKeyIndex<TKey>(ref readonly TKey key)
         where TKey : notnull;
 
