@@ -51,17 +51,17 @@ public abstract class SemaphorePool
         where TKey : notnull
     {
         CheckDispose();
-        return Core(this, key, argument, func, cancellationToken);
+        var index = GetKeyIndex(ref key);
+        var semaphore = pool[index];
+        return Core(semaphore, argument, func, cancellationToken);
 
         static async Task<TResult> Core(
-            SemaphorePool @this,
-            TKey key,
+            SemaphoreSlim semaphore,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> func,
             CancellationToken cancellationToken)
         {
-            var index = @this.GetKeyIndex(ref key);
-            var semaphore = @this.pool[index];
+
             await semaphore.WaitAsync(cancellationToken);
             try
             {
