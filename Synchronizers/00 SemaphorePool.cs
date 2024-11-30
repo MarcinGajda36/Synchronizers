@@ -41,7 +41,7 @@ public abstract class SemaphorePool
         : null;
 
     // TODO: i want to replace abstract + generic
-    // I want to try
+    // I want to try, maybe benchmark?
     // 1) Func<TKey, int>
     // 2) '0 cost abstraction' default(TKeyIndexStrategy).GetKeyIndex(TArgument argument, TKey key)
     // 3) static abstract
