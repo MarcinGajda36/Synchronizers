@@ -25,7 +25,7 @@ public sealed class FibonacciSemaphorePool(int size = 32)
     //L000b: imul eax, 0x9e3779b9
     //L0011: shr eax, 0x1b
     //L0014: ret
-    protected override int GetKeyIndex<TKey>(TKey key)
+    protected override int GetKeyIndex<TKey>(ref readonly TKey key)
     {
         const uint Fibonacci = 2654435769u; // 2 ^ 32 / PHI
         unchecked

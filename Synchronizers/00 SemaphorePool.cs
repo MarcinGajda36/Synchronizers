@@ -10,28 +10,6 @@ using System.Threading.Tasks;
 public abstract class SemaphorePool
     : IDisposable
 {
-    private readonly SemaphoreSlim[] pool;
-    private bool disposedValue;
-
-    public int Size { get; }
-
-    protected SemaphorePool(int size)
-    {
-        var error = ValidateSize(size);
-        if (error != null)
-        {
-            throw error;
-        }
-
-        pool = CreatePool(size);
-        Size = size;
-    }
-
-    protected virtual Exception? ValidateSize(int size)
-        => size < 1
-        ? new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1.")
-        : null;
-
     private static SemaphoreSlim[] CreatePool(int size)
     {
         var pool = new SemaphoreSlim[size];
@@ -42,10 +20,30 @@ public abstract class SemaphorePool
         return pool;
     }
 
-    protected abstract int GetKeyIndex<TKey>(TKey key)
+    private SemaphoreSlim[] pool;
+
+    public int Size => pool.Length;
+
+    protected SemaphorePool(int size)
+    {
+        var error = ValidateSize(size);
+        if (error != null)
+        {
+            throw error;
+        }
+
+        pool = CreatePool(size);
+    }
+
+    protected virtual Exception? ValidateSize(int size)
+        => size < 1
+        ? new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1.")
+        : null;
+
+    protected abstract int GetKeyIndex<TKey>(ref readonly TKey key)
         where TKey : notnull;
 
-    public async Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
+    public Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> func,
@@ -53,16 +51,26 @@ public abstract class SemaphorePool
         where TKey : notnull
     {
         CheckDispose();
-        var index = GetKeyIndex(key);
-        var semaphore = pool[index];
-        await semaphore.WaitAsync(cancellationToken);
-        try
+        return Core(this, key, argument, func, cancellationToken);
+
+        static async Task<TResult> Core(
+            SemaphorePool @this,
+            TKey key,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask<TResult>> func,
+            CancellationToken cancellationToken)
         {
-            return await func(argument, cancellationToken);
-        }
-        finally
-        {
-            _ = semaphore.Release();
+            var index = @this.GetKeyIndex(ref key);
+            var semaphore = @this.pool[index];
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await func(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
         }
     }
 
@@ -114,7 +122,7 @@ public abstract class SemaphorePool
         var keyCount = 0;
         foreach (var key in keys)
         {
-            var keyIndex = GetKeyIndex(key);
+            var keyIndex = GetKeyIndex(in key);
             if (keysIndexes.AsSpan(..keyCount).Contains(keyIndex) is false)
             {
                 keysIndexes[keyCount++] = keyIndex;
@@ -133,13 +141,16 @@ public abstract class SemaphorePool
         return keyCount;
     }
 
-    public async Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
+    public Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        CheckDispose();
+        return Core(this, keys, argument, resultFactory, cancellationToken);
+
         static void ReleaseLocked(SemaphoreSlim[] pool, Span<int> locked)
         {
             for (var index = locked.Length - 1; index >= 0; --index)
@@ -149,32 +160,39 @@ public abstract class SemaphorePool
             }
         }
 
-        CheckDispose();
-        var pool_ = pool;
-        var keyIndexes = ArrayPool<int>.Shared.Rent(pool_.Length);
-        var keyIndexesCount = FillWithKeyIndexes(keys, keyIndexes);
-        for (var index = 0; index < keyIndexesCount; ++index)
+        static async Task<TResult> Core(
+            SemaphorePool @this,
+            IEnumerable<TKey> keys,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+            CancellationToken cancellationToken)
         {
+            var pool_ = @this.pool;
+            var keyIndexes = ArrayPool<int>.Shared.Rent(pool_.Length);
+            var keyIndexesCount = @this.FillWithKeyIndexes(keys, keyIndexes);
+            for (var index = 0; index < keyIndexesCount; ++index)
+            {
+                try
+                {
+                    await pool_[keyIndexes[index]].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseLocked(pool_, keyIndexes.AsSpan(..index));
+                    ArrayPool<int>.Shared.Return(keyIndexes);
+                    throw;
+                }
+            }
+
             try
             {
-                await pool_[keyIndexes[index]].WaitAsync(cancellationToken);
+                return await resultFactory(argument, cancellationToken);
             }
-            catch
+            finally
             {
-                ReleaseLocked(pool_, keyIndexes.AsSpan(..index));
+                ReleaseLocked(pool_, keyIndexes.AsSpan(..keyIndexesCount));
                 ArrayPool<int>.Shared.Return(keyIndexes);
-                throw;
             }
-        }
-
-        try
-        {
-            return await resultFactory(argument, cancellationToken);
-        }
-        finally
-        {
-            ReleaseLocked(pool_, keyIndexes.AsSpan(..keyIndexesCount));
-            ArrayPool<int>.Shared.Return(keyIndexes);
         }
     }
 
@@ -220,11 +238,14 @@ public abstract class SemaphorePool
             },
             cancellationToken);
 
-    public async Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
+    public Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
+        CheckDispose();
+        return Core(pool, argument, resultFactory, cancellationToken);
+
         static void ReleaseAll(SemaphoreSlim[] pool, int index)
         {
             for (var toRelease = index; toRelease >= 0; --toRelease)
@@ -233,28 +254,33 @@ public abstract class SemaphorePool
             }
         }
 
-        CheckDispose();
-        var pool_ = pool;
-        for (var index = 0; index < pool_.Length; ++index)
+        static async Task<TResult> Core(
+            SemaphoreSlim[] pool,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+            CancellationToken cancellationToken)
         {
+            for (var index = 0; index < pool.Length; ++index)
+            {
+                try
+                {
+                    await pool[index].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseAll(pool, index - 1);
+                    throw;
+                }
+            }
+
             try
             {
-                await pool_[index].WaitAsync(cancellationToken);
+                return await resultFactory(argument, cancellationToken);
             }
-            catch
+            finally
             {
-                ReleaseAll(pool_, index - 1);
-                throw;
+                ReleaseAll(pool, pool.Length - 1);
             }
-        }
-
-        try
-        {
-            return await resultFactory(argument, cancellationToken);
-        }
-        finally
-        {
-            ReleaseAll(pool_, pool_.Length - 1);
         }
     }
 
@@ -293,14 +319,13 @@ public abstract class SemaphorePool
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
+        var original = Interlocked.Exchange(ref pool!, null);
+        if (original != null)
         {
             if (disposing)
             {
-                Array.ForEach(pool, semaphore => semaphore.Dispose());
+                Array.ForEach(original, semaphore => semaphore.Dispose());
             }
-
-            disposedValue = true;
         }
     }
 
@@ -312,5 +337,5 @@ public abstract class SemaphorePool
     }
 
     private void CheckDispose()
-        => ObjectDisposedException.ThrowIf(disposedValue, this);
+        => ObjectDisposedException.ThrowIf(pool == null, this);
 }

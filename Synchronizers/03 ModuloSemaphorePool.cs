@@ -17,7 +17,7 @@ public sealed class ModuloSemaphorePool(int size = 31)
     //L000f: idiv dword ptr[rcx + 8]
     //L0012: mov eax, edx
     //L0014: ret
-    protected override int GetKeyIndex<TKey>(TKey key)
+    protected override int GetKeyIndex<TKey>(ref readonly TKey key)
         => key.GetHashCode() % Size;
 
 }

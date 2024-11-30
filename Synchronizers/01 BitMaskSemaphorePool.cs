@@ -25,7 +25,7 @@ public sealed class BitMaskSemaphorePool(int size = 32)
     //L0008: xor eax, [rcx + 0xc]
     //L000b: and eax, 0x1f
     //L000e: ret
-    protected override int GetKeyIndex<TKey>(TKey key)
+    protected override int GetKeyIndex<TKey>(ref readonly TKey key)
         => key.GetHashCode() & poolIndexBitMask;
 
 }
