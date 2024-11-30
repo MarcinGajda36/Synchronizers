@@ -70,7 +70,6 @@ public abstract class SemaphorePool
             Func<TArgument, CancellationToken, ValueTask<TResult>> func,
             CancellationToken cancellationToken)
         {
-
             await semaphore.WaitAsync(cancellationToken);
             try
             {
