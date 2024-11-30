@@ -58,9 +58,10 @@ public abstract class SemaphorePool
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        CheckDispose();
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
         var index = GetKeyIndex(ref key);
-        var semaphore = pool[index];
+        var semaphore = pool_[index];
         return Core(semaphore, argument, func, cancellationToken);
 
         static async Task<TResult> Core(
@@ -156,7 +157,7 @@ public abstract class SemaphorePool
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        CheckDispose();
+        ObjectDisposedException.ThrowIf(pool == null, this);
         return Core(this, keys, argument, resultFactory, cancellationToken);
 
         static void ReleaseLocked(SemaphoreSlim[] pool, Span<int> locked)
@@ -251,8 +252,9 @@ public abstract class SemaphorePool
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
-        CheckDispose();
-        return Core(pool, argument, resultFactory, cancellationToken);
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        return Core(pool_, argument, resultFactory, cancellationToken);
 
         static void ReleaseAll(SemaphoreSlim[] pool, int index)
         {
@@ -344,6 +346,4 @@ public abstract class SemaphorePool
         GC.SuppressFinalize(this);
     }
 
-    private void CheckDispose()
-        => ObjectDisposedException.ThrowIf(pool == null, this);
 }
