@@ -1,6 +1,6 @@
 This project is release as nuget package: https://www.nuget.org/packages/PerKeySynchronizers 
 
-Main types: PerKeySynchronizer<TKey>, PerKeySynchronizer
+Main types: PerKeySynchronizer{TKey}, PerKeySynchronizer
 
 example use case:
 ```C#
