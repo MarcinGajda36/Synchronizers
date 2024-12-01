@@ -5,7 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using PerKeySynchronizers;
+using PerKeySynchronizers.BoundedParallelism;
+using PerKeySynchronizers.UnboundedParallelism;
 
 public class Tests
 {
@@ -17,17 +18,17 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new ModuloSemaphorePool(1);
+        var synchronizer = new ModuloPerKeySynchronizer(1);
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -44,17 +45,17 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new ModuloSemaphorePool(69);
+        var synchronizer = new ModuloPerKeySynchronizer(69);
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -71,17 +72,17 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new BitMaskSemaphorePool(32);
+        var synchronizer = new BitMaskPerKeySynchronizer(32);
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -98,17 +99,17 @@ public class Tests
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new FibonacciSemaphorePool(32);
+        var synchronizer = new FibonacciPerKeySynchronizer(32);
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -127,15 +128,15 @@ public class Tests
 
         var synchronizer = new DictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
@@ -236,15 +237,15 @@ public class Tests
 
         var synchronizer = new ConcurrentDictionaryOfSemaphores<int>();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, _) =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, _);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, _);
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
         });
         await Task.WhenAll(firstSumTask, secondSumTask);
 

@@ -1,4 +1,4 @@
-﻿namespace PerKeySynchronizers;
+﻿namespace PerKeySynchronizers.UnboundedParallelism;
 
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ using System.Threading;
 /// Allows to enter synchronized section for key B inside synchronized section of key A.
 /// </summary>
 public sealed class DictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
-    : SemaphorePerKey<TKey>
+    : PerKeySynchronizer<TKey>
     where TKey : notnull
 {
     private readonly Dictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);

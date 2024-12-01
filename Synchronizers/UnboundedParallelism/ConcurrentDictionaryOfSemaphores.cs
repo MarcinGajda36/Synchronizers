@@ -1,4 +1,4 @@
-﻿namespace PerKeySynchronizers;
+﻿namespace PerKeySynchronizers.UnboundedParallelism;
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Threading;
 /// Allows to enter synchronized section for key B inside synchronized section of key A.
 /// </summary>
 public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
-    : SemaphorePerKey<TKey>
+    : PerKeySynchronizer<TKey>
     where TKey : notnull
 {
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
@@ -18,7 +18,6 @@ public sealed class ConcurrentDictionaryOfSemaphores<TKey>(IEqualityComparer<TKe
 
     protected override SemaphoreSlim GetOrCreate(TKey key)
     {
-        // i am tempted to add SpinWait here but not in Cleanup
         var semaphores_ = semaphores;
         while (true)
         {

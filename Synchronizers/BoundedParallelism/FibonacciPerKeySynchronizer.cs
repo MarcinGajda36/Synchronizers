@@ -1,30 +1,23 @@
-﻿namespace PerKeySynchronizers;
+﻿namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
-//  abstract + generic like 'GetKeyIndex(...)' is high runtime perf cost right? I heard it uses ConcurrentDictionary<> on runtime.
-public abstract class SemaphorePool
-    : IDisposable
+/// <summary>
+/// Total concurrency is limited to pool size.
+/// Fibonacci hash seems nice for balance of hash distribution and perf.
+/// </summary>
+public sealed class FibonacciPerKeySynchronizer
+    : IPerKeySynchronizer, IDisposable
 {
-    private static SemaphoreSlim[] CreatePool(int size)
-    {
-        var pool = new SemaphoreSlim[size];
-        for (var index = 0; index < pool.Length; ++index)
-        {
-            pool[index] = new SemaphoreSlim(1, 1);
-        }
-        return pool;
-    }
-
     private SemaphoreSlim[] pool;
+    private readonly int poolIndexBitShift;
 
-    public int Size => pool.Length;
-
-    protected SemaphorePool(int size)
+    public FibonacciPerKeySynchronizer(int size = 32)
     {
         var error = ValidateSize(size);
         if (error != null)
@@ -32,54 +25,48 @@ public abstract class SemaphorePool
             throw error;
         }
 
-        pool = CreatePool(size);
+        pool = SemaphorePool.CreatePool(size);
+        poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(size);
     }
 
-    protected virtual Exception? ValidateSize(int size)
-        => size < 1
-        ? new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1.")
+    private static ArgumentOutOfRangeException? ValidateSize(int size)
+        => size < 1 || BitOperations.IsPow2(size) is false
+        ? new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1 and a power of 2.")
         : null;
 
-    // TODO: i want to replace abstract + generic
-    // I want to try, maybe benchmark?
-    // 1) Func<TKey, int>
-    // 2) '0 cost abstraction' default(TKeyIndexStrategy).GetKeyIndex(TArgument argument, TKey key)
-    //  this would make methods here protected and caller forwards to here with some generic?
-    // 3) static abstract, just to learn
-    // 4) code inlining = copy + paste
-    // 5) take int indexes here, leave TKey to subclasses
-    protected abstract int GetKeyIndex<TKey>(ref readonly TKey key)
-        where TKey : notnull;
+    //Program.<<Main>$>g__GetKeyIndex|0_2(System.Guid)
+    //L0000: mov eax, [rcx]
+    //L0002: xor eax, [rcx + 4]
+    //L0005: xor eax, [rcx + 8]
+    //L0008: xor eax, [rcx + 0xc]
+    //L000b: imul eax, 0x9e3779b9
+    //L0011: shr eax, 0x1b
+    //L0014: ret
+    private static int GetKeyIndex<TKey>(ref readonly TKey key, int poolIndexBitShift)
+        where TKey : notnull
+    {
+        const uint Fibonacci = 2654435769u; // 2 ^ 32 / PHI
+        unchecked
+        {
+            var keyHash = (uint)key.GetHashCode();
+            var fibonacciHash = keyHash * Fibonacci;
+            var index = fibonacciHash >> poolIndexBitShift;
+            return (int)index;
+        }
+    }
 
     public Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
-        Func<TArgument, CancellationToken, ValueTask<TResult>> func,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
         var pool_ = pool;
         ObjectDisposedException.ThrowIf(pool_ == null, this);
-        var index = GetKeyIndex(ref key);
+        var index = GetKeyIndex(ref key, poolIndexBitShift);
         var semaphore = pool_[index];
-        return Core(semaphore, argument, func, cancellationToken);
-
-        static async Task<TResult> Core(
-            SemaphoreSlim semaphore,
-            TArgument argument,
-            Func<TArgument, CancellationToken, ValueTask<TResult>> func,
-            CancellationToken cancellationToken)
-        {
-            await semaphore.WaitAsync(cancellationToken);
-            try
-            {
-                return await func(argument, cancellationToken);
-            }
-            finally
-            {
-                _ = semaphore.Release();
-            }
-        }
+        return SemaphorePool.SynchronizeAsync(semaphore, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeAsync<TKey, TArgument>(
@@ -100,12 +87,12 @@ public abstract class SemaphorePool
 
     public Task<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
-        Func<CancellationToken, ValueTask<TResult>> func,
+        Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
         => SynchronizeAsync(
             key,
-            func,
+            resultFactory,
             static (func, token) => func(token),
             cancellationToken);
 
@@ -124,27 +111,19 @@ public abstract class SemaphorePool
             },
             cancellationToken);
 
-    private int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int[] keysIndexes)
+    private static int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int poolIndexBitShift, int[] keysIndexes)
         where TKey : notnull
     {
         var keyCount = 0;
         foreach (var key in keys)
         {
-            var keyIndex = GetKeyIndex(in key);
-            if (keysIndexes.AsSpan(..keyCount).Contains(keyIndex) is false)
+            var index = GetKeyIndex(in key, poolIndexBitShift);
+            if (keysIndexes.AsSpan(..keyCount).Contains(index) is false)
             {
-                keysIndexes[keyCount++] = keyIndex;
+                keysIndexes[keyCount++] = index;
             }
-            // For crazy amount of keys we can stop if keyCount == pool.Length
-            // but it feels like optimizing for worst case
         }
-        // We need order to avoid deadlock when:
-        // 1) Thread 1 hold keys A and B
-        // 2) Thread 2 waits for A and B
-        // 3) Thread 3 waits for B and A
-        // 4) Thread 1 releases A and B
-        // 5) Thread 2 grabs A; Thread 3 grabs B
-        // 6) Thread 2 waits for B; Thread 3 waits for A infinitely
+
         Array.Sort(keysIndexes, 0, keyCount);
         return keyCount;
     }
@@ -156,49 +135,26 @@ public abstract class SemaphorePool
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        ObjectDisposedException.ThrowIf(pool == null, this);
-        return Core(this, keys, argument, resultFactory, cancellationToken);
-
-        static void ReleaseLocked(SemaphoreSlim[] pool, Span<int> locked)
-        {
-            for (var index = locked.Length - 1; index >= 0; --index)
-            {
-                // I didn't saw strict need to release in reverse order, it just seemed cool
-                _ = pool[locked[index]].Release();
-            }
-        }
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        return Core(keys, argument, resultFactory, pool_, poolIndexBitShift, cancellationToken);
 
         static async Task<TResult> Core(
-            SemaphorePool @this,
             IEnumerable<TKey> keys,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+            SemaphoreSlim[] pool,
+            int poolIndexBitShift,
             CancellationToken cancellationToken)
         {
-            var pool_ = @this.pool;
-            var keyIndexes = ArrayPool<int>.Shared.Rent(pool_.Length);
-            var keyIndexesCount = @this.FillWithKeyIndexes(keys, keyIndexes);
-            for (var index = 0; index < keyIndexesCount; ++index)
-            {
-                try
-                {
-                    await pool_[keyIndexes[index]].WaitAsync(cancellationToken);
-                }
-                catch
-                {
-                    ReleaseLocked(pool_, keyIndexes.AsSpan(..index));
-                    ArrayPool<int>.Shared.Return(keyIndexes);
-                    throw;
-                }
-            }
-
+            var keyIndexes = ArrayPool<int>.Shared.Rent(pool.Length);
+            var keyIndexesCount = FillWithKeyIndexes(keys, poolIndexBitShift, keyIndexes);
             try
             {
-                return await resultFactory(argument, cancellationToken);
+                return await SemaphorePool.SynchronizeManyAsync(pool, keyIndexes, keyIndexesCount, argument, resultFactory, cancellationToken);
             }
             finally
             {
-                ReleaseLocked(pool_, keyIndexes.AsSpan(..keyIndexesCount));
                 ArrayPool<int>.Shared.Return(keyIndexes);
             }
         }
@@ -253,44 +209,7 @@ public abstract class SemaphorePool
     {
         var pool_ = pool;
         ObjectDisposedException.ThrowIf(pool_ == null, this);
-        return Core(pool_, argument, resultFactory, cancellationToken);
-
-        static void ReleaseAll(SemaphoreSlim[] pool, int index)
-        {
-            for (var toRelease = index; toRelease >= 0; --toRelease)
-            {
-                _ = pool[toRelease].Release();
-            }
-        }
-
-        static async Task<TResult> Core(
-            SemaphoreSlim[] pool,
-            TArgument argument,
-            Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
-            CancellationToken cancellationToken)
-        {
-            for (var index = 0; index < pool.Length; ++index)
-            {
-                try
-                {
-                    await pool[index].WaitAsync(cancellationToken);
-                }
-                catch
-                {
-                    ReleaseAll(pool, index - 1);
-                    throw;
-                }
-            }
-
-            try
-            {
-                return await resultFactory(argument, cancellationToken);
-            }
-            finally
-            {
-                ReleaseAll(pool, pool.Length - 1);
-            }
-        }
+        return SemaphorePool.SynchronizeAllAsync(pool_, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeAllAsync<TArgument>(
@@ -326,23 +245,12 @@ public abstract class SemaphorePool
             },
             cancellationToken);
 
-    protected virtual void Dispose(bool disposing)
+    public void Dispose()
     {
         var original = Interlocked.Exchange(ref pool!, null);
         if (original != null)
         {
-            if (disposing)
-            {
-                Array.ForEach(original, semaphore => semaphore.Dispose());
-            }
+            Array.ForEach(original, semaphore => semaphore.Dispose());
         }
     }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
 }

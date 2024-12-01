@@ -1,10 +1,11 @@
-﻿namespace PerKeySynchronizers;
+﻿namespace PerKeySynchronizers.UnboundedParallelism;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public abstract class SemaphorePerKey<TKey>
+public abstract class PerKeySynchronizer<TKey>
+    : IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
     protected abstract SemaphoreSlim GetOrCreate(TKey key);
@@ -13,7 +14,7 @@ public abstract class SemaphorePerKey<TKey>
     public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
-        Func<TArgument, CancellationToken, ValueTask<TResult>> func,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
         var semaphore = GetOrCreate(key);
@@ -22,7 +23,7 @@ public abstract class SemaphorePerKey<TKey>
             await semaphore.WaitAsync(cancellationToken);
             try
             {
-                return await func(argument, cancellationToken);
+                return await resultFactory(argument, cancellationToken);
             }
             finally
             {
@@ -52,11 +53,11 @@ public abstract class SemaphorePerKey<TKey>
 
     public Task<TResult> SynchronizeAsync<TResult>(
         TKey key,
-        Func<CancellationToken, ValueTask<TResult>> func,
+        Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         => SynchronizeAsync(
             key,
-            func,
+            resultFactory,
             static (func, token) => func(token),
             cancellationToken);
 

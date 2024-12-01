@@ -1,4 +1,4 @@
-﻿namespace PerKeySynchronizers;
+﻿namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
 using System.Numerics;
@@ -57,7 +57,7 @@ internal class Experiment
                 // What now?
             }
 
-            var currentIndex = (initialIndex + jumps) & keysIndexMask;
+            var currentIndex = initialIndex + jumps & keysIndexMask;
             var indexKey = keys[currentIndex];
             if (indexKey == 0) // I always need to increment ref count and maintain hash even when initial hasher freed count, or i would let same key to access 2 semaphores.
             {
@@ -88,7 +88,7 @@ internal class Experiment
                                 var decrementedRefCount = ((indexKeyCopy & RefCountMask) >> RefCountMaskTrailingZeros) - 1;
                                 decremented = decrementedRefCount == 0ul
                                     ? 0ul
-                                    : (indexKeyCopy & AllButRefCountMask) | (decrementedRefCount << RefCountMaskTrailingZeros);
+                                    : indexKeyCopy & AllButRefCountMask | decrementedRefCount << RefCountMaskTrailingZeros;
                                 indexKey = Interlocked.CompareExchange(ref keys[currentIndex], decremented, indexKeyCopy);
                                 if (indexKey == indexKeyCopy)
                                 {
