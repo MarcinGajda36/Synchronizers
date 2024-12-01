@@ -13,12 +13,12 @@ public class Tests
     private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001);
 
     [Test]
-    public async Task SemaphorePool_Size1()
+    public async Task FibonacciSemaphorePool_Size32()
     {
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new ModuloPerKeySynchronizer(1);
+        var synchronizer = new PerKeySynchronizer(32);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
@@ -40,12 +40,12 @@ public class Tests
     }
 
     [Test]
-    public async Task SemaphorePool()
+    public async Task FibonacciSemaphorePool_Size1()
     {
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new ModuloPerKeySynchronizer(69);
+        var synchronizer = new PerKeySynchronizer(1);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
@@ -67,12 +67,12 @@ public class Tests
     }
 
     [Test]
-    public async Task BitMaskSemaphorePool()
+    public async Task PerKeySynchronizer_TwoKeys()
     {
         var firstSum = 0;
         var secondSum = 0;
 
-        var synchronizer = new BitMaskPerKeySynchronizer(32);
+        var synchronizer = new PerKeySynchronizer<int>();
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
@@ -94,64 +94,10 @@ public class Tests
     }
 
     [Test]
-    public async Task FibonacciSemaphorePool()
-    {
-        var firstSum = 0;
-        var secondSum = 0;
-
-        var synchronizer = new FibonacciPerKeySynchronizer(32);
-
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
-        await Task.WhenAll(firstSumTask, secondSumTask);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(firstSum, Is.EqualTo(secondSum));
-            Assert.That(firstSum, Is.EqualTo(0));
-        });
-    }
-
-    [Test]
-    public async Task DictionaryOfSemaphores()
-    {
-        var firstSum = 0;
-        var secondSum = 0;
-
-        var synchronizer = new DictionaryOfSemaphores<int>();
-
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
-        await Task.WhenAll(firstSumTask, secondSumTask);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(firstSum, Is.EqualTo(secondSum));
-            Assert.That(firstSum, Is.EqualTo(0));
-        });
-    }
-
-    [Test]
-    public async Task SynchronizeAsync_SingleKey_ExecutesFunction()
+    public async Task SynchronizeAsync_SingleKey()
     {
         // Arrange
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new PerKeySynchronizer<int>();
         var key = 1;
         var argument = "test";
         var isFunctionExecuted = false;
@@ -171,7 +117,7 @@ public class Tests
     public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently()
     {
         // Arrange
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new PerKeySynchronizer<int>();
         var argument = "test";
         var executionOrder = "";
 
@@ -204,7 +150,7 @@ public class Tests
     public void SynchronizeAsync_CancellationRequested_DoesNotExecuteFunction()
     {
         // Arrange
-        var synchronizer = new DictionaryOfSemaphores<int>();
+        var synchronizer = new PerKeySynchronizer<int>();
         var isFunctionExecuted = false;
         using var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
@@ -226,33 +172,6 @@ public class Tests
             });
 
             Assert.That(isFunctionExecuted, Is.False);
-        });
-    }
-
-    [Test]
-    public async Task ConcurrentDictionary_()
-    {
-        var firstSum = 0;
-        var secondSum = 0;
-
-        var synchronizer = new ConcurrentDictionaryOfSemaphores<int>();
-
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
-        await Task.WhenAll(firstSumTask, secondSumTask);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(firstSum, Is.EqualTo(secondSum));
-            Assert.That(firstSum, Is.EqualTo(0));
         });
     }
 }

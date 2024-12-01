@@ -7,51 +7,68 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
-/// <summary>
-/// Total concurrency is limited to pool size.
-/// Fibonacci hash seems nice for balance of hash distribution and perf.
-/// </summary>
-public sealed class FibonacciPerKeySynchronizer
+public sealed class PerKeySynchronizer
     : IPerKeySynchronizer, IDisposable
 {
     private SemaphoreSlim[] pool;
     private readonly int poolIndexBitShift;
 
-    public FibonacciPerKeySynchronizer(int size = 32)
+    /// <summary>
+    /// Synchronizes operations so all operation on given key happen one at a time, 
+    /// while allowing operations for different keys to happen in parallel.
+    /// Uses Fibonacci hashing to grab semaphore for given key.
+    /// </summary>
+    /// <param name="maxDegreeOfParallelism">
+    /// Maximum total parallel operation. 
+    /// Has to be at least 1 and a power of 2.
+    /// </param>
+    public PerKeySynchronizer(int maxDegreeOfParallelism = 32)
     {
-        var error = ValidateSize(size);
+        var error = ValidateSize(maxDegreeOfParallelism);
         if (error != null)
         {
             throw error;
         }
 
-        pool = SemaphorePool.CreatePool(size);
-        poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(size);
+        pool = CreatePool(maxDegreeOfParallelism);
+        poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(maxDegreeOfParallelism);
     }
 
-    private static ArgumentOutOfRangeException? ValidateSize(int size)
-        => size < 1 || BitOperations.IsPow2(size) is false
-        ? new ArgumentOutOfRangeException(nameof(size), size, "Pool size has to be at least 1 and a power of 2.")
+    private static SemaphoreSlim[] CreatePool(int maxDegreeOfParallelism)
+    {
+        var pool = new SemaphoreSlim[maxDegreeOfParallelism];
+        for (var index = 0; index < pool.Length; ++index)
+        {
+            pool[index] = new SemaphoreSlim(1, 1);
+        }
+        return pool;
+    }
+
+    private static ArgumentOutOfRangeException? ValidateSize(int maxDegreeOfParallelism)
+        => maxDegreeOfParallelism < 1 || BitOperations.IsPow2(maxDegreeOfParallelism) is false
+        ? new ArgumentOutOfRangeException(
+            nameof(maxDegreeOfParallelism),
+            maxDegreeOfParallelism,
+            "Max degree of parallelism has to be at least 1 and a power of 2.")
         : null;
 
-    //Program.<<Main>$>g__GetKeyIndex|0_2(System.Guid)
-    //L0000: mov eax, [rcx]
-    //L0002: xor eax, [rcx + 4]
-    //L0005: xor eax, [rcx + 8]
-    //L0008: xor eax, [rcx + 0xc]
-    //L000b: imul eax, 0x9e3779b9
-    //L0011: shr eax, 0x1b
-    //L0014: ret
-    private static int GetKeyIndex<TKey>(ref readonly TKey key, int poolIndexBitShift)
+    private static int GetKeyIndex<TKey>(TKey key, int poolIndexBitShift)
         where TKey : notnull
     {
         const uint Fibonacci = 2654435769u; // 2 ^ 32 / PHI
         unchecked
         {
-            var keyHash = (uint)key.GetHashCode();
-            var fibonacciHash = keyHash * Fibonacci;
-            var index = fibonacciHash >> poolIndexBitShift;
-            return (int)index;
+            if (poolIndexBitShift != 32)
+            {
+                var keyHash = (uint)key.GetHashCode();
+                var fibonacciHash = keyHash * Fibonacci;
+                var index = fibonacciHash >> poolIndexBitShift;
+                return (int)index;
+            }
+            else
+            {
+                return 0;
+            }
         }
     }
 
@@ -62,11 +79,30 @@ public sealed class FibonacciPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        static async Task<TResult> Core(
+            int poolIndexBitShift,
+            SemaphoreSlim[] pool,
+            TKey key,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+            CancellationToken cancellationToken)
+        {
+            var index = GetKeyIndex(key, poolIndexBitShift);
+            var semaphore = pool[index];
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await resultFactory(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
+        }
+
         var pool_ = pool;
         ObjectDisposedException.ThrowIf(pool_ == null, this);
-        var index = GetKeyIndex(ref key, poolIndexBitShift);
-        var semaphore = pool_[index];
-        return SemaphorePool.SynchronizeAsync(semaphore, argument, resultFactory, cancellationToken);
+        return Core(poolIndexBitShift, pool_, key, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeAsync<TKey, TArgument>(
@@ -117,7 +153,7 @@ public sealed class FibonacciPerKeySynchronizer
         var keyCount = 0;
         foreach (var key in keys)
         {
-            var index = GetKeyIndex(in key, poolIndexBitShift);
+            var index = GetKeyIndex(key, poolIndexBitShift);
             if (keysIndexes.AsSpan(..keyCount).Contains(index) is false)
             {
                 keysIndexes[keyCount++] = index;
@@ -135,29 +171,53 @@ public sealed class FibonacciPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
-        return Core(keys, argument, resultFactory, pool_, poolIndexBitShift, cancellationToken);
+        static void ReleaseLocked(SemaphoreSlim[] pool, Span<int> locked)
+        {
+            for (var index = locked.Length - 1; index >= 0; --index)
+            {
+                // I didn't saw strict need to release in reverse order, it just seemed beneficial
+                _ = pool[locked[index]].Release();
+            }
+        }
 
         static async Task<TResult> Core(
+            int poolIndexBitShift,
+            SemaphoreSlim[] pool,
             IEnumerable<TKey> keys,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
-            SemaphoreSlim[] pool,
-            int poolIndexBitShift,
             CancellationToken cancellationToken)
         {
-            var keyIndexes = ArrayPool<int>.Shared.Rent(pool.Length);
-            var keyIndexesCount = FillWithKeyIndexes(keys, poolIndexBitShift, keyIndexes);
+            var indexes = ArrayPool<int>.Shared.Rent(pool.Length);
+            var indexesCount = FillWithKeyIndexes(keys, poolIndexBitShift, indexes);
+            for (var index = 0; index < indexesCount; ++index)
+            {
+                try
+                {
+                    await pool[indexes[index]].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseLocked(pool, indexes.AsSpan(..index));
+                    ArrayPool<int>.Shared.Return(indexes);
+                    throw;
+                }
+            }
+
             try
             {
-                return await SemaphorePool.SynchronizeManyAsync(pool, keyIndexes, keyIndexesCount, argument, resultFactory, cancellationToken);
+                return await resultFactory(argument, cancellationToken);
             }
             finally
             {
-                ArrayPool<int>.Shared.Return(keyIndexes);
+                ReleaseLocked(pool, indexes.AsSpan(..indexesCount));
+                ArrayPool<int>.Shared.Return(indexes);
             }
         }
+
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        return Core(poolIndexBitShift, pool_, keys, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeManyAsync<TKey, TArgument>(
@@ -207,9 +267,46 @@ public sealed class FibonacciPerKeySynchronizer
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
+        static void ReleaseAll(SemaphoreSlim[] pool, int index)
+        {
+            for (var toRelease = index; toRelease >= 0; --toRelease)
+            {
+                _ = pool[toRelease].Release();
+            }
+        }
+
+        static async Task<TResult> Core(
+            SemaphoreSlim[] pool,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+            CancellationToken cancellationToken)
+        {
+            for (var index = 0; index < pool.Length; ++index)
+            {
+                try
+                {
+                    await pool[index].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseAll(pool, index - 1);
+                    throw;
+                }
+            }
+
+            try
+            {
+                return await resultFactory(argument, cancellationToken);
+            }
+            finally
+            {
+                ReleaseAll(pool, pool.Length - 1);
+            }
+        }
+
         var pool_ = pool;
         ObjectDisposedException.ThrowIf(pool_ == null, this);
-        return SemaphorePool.SynchronizeAllAsync(pool_, argument, resultFactory, cancellationToken);
+        return Core(pool_, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeAllAsync<TArgument>(
