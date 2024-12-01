@@ -1,12 +1,12 @@
 This project is release as nuget package: https://www.nuget.org/packages/PerKeySynchronizers 
 
-Main types: BitMaskSemaphorePool, FibonacciSemaphorePool, ModuloSemaphorePool, DictionaryOfSemaphores, ConcurrentDictionaryOfSemaphores
+Main types: PerKeySynchronizer<TKey>, PerKeySynchronizer
 
 example use case:
 ```C#
-  private static readonly DictionaryOfSemaphores<Guid> semaphores = new();
+  private static readonly PerKeySynchronizer<Guid> synchronizer = new();
   
-  await semaphores.SynchronizeAsync(
+  await synchronizer.SynchronizeAsync(
     tenantId,
     tenantState,
     async (tenantState, cancellationToken) =>
