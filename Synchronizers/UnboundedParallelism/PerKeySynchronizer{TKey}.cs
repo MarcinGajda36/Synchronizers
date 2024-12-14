@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 /// <param name="equalityComparer">
 /// Comparer used to determine if keys are the same.
 /// </param>
-public struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
+public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     : IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
