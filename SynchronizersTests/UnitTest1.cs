@@ -184,6 +184,39 @@ public class Tests
     }
 
     [Test]
+    public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently_CustomHash()
+    {
+        // Arrange
+        var synchronizer = new PerKeySynchronizer<IntWrapper>();
+        var argument = "test";
+        var executionOrder = "";
+
+        // Act
+        var task1 = synchronizer.SynchronizeAsync(new IntWrapper(1), argument, async (arg, cancellationToken) =>
+        {
+            await Task.Delay(100, cancellationToken);
+            executionOrder += "1";
+        });
+
+        var task2 = synchronizer.SynchronizeAsync(new IntWrapper(2), argument, async (arg, cancellationToken) =>
+        {
+            await Task.Delay(50, cancellationToken);
+            executionOrder += "2";
+        });
+
+        var task3 = synchronizer.SynchronizeAsync(new IntWrapper(3), argument, async (arg, cancellationToken) =>
+        {
+            await Task.Delay(75, cancellationToken);
+            executionOrder += "3";
+        });
+
+        await Task.WhenAll(task1, task2, task3);
+
+        // Assert
+        Assert.That(executionOrder, Is.EqualTo("231"));
+    }
+
+    [Test]
     public void SynchronizeAsync_CancellationRequested_DoesNotExecuteFunction()
     {
         // Arrange

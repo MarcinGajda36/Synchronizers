@@ -1,0 +1,205 @@
+﻿namespace PerKeySynchronizers.BoundedParallelism;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+public partial class PerKeySynchronizer
+{
+    private static int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int poolLength, int[] keysIndexes)
+        where TKey : notnull
+    {
+        var keyCount = 0;
+        foreach (var key in keys)
+        {
+            var index = GetKeyIndex(key, poolLength);
+            if (keysIndexes.AsSpan(..keyCount).Contains(index) is false)
+            {
+                keysIndexes[keyCount++] = index;
+            }
+        }
+
+        Array.Sort(keysIndexes, 0, keyCount);
+        return keyCount;
+    }
+
+    private static void ReleaseLocked(SemaphoreSlim[] pool, Span<int> locked)
+    {
+        for (var index = locked.Length - 1; index >= 0; --index)
+        {
+            // I didn't saw strict need to release in reverse order, it just seemed beneficial
+            _ = pool[locked[index]].Release();
+        }
+    }
+
+    public Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+    {
+        static async Task<TResult> Core(
+            SemaphoreSlim[] pool,
+            IEnumerable<TKey> keys,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
+            CancellationToken cancellationToken)
+        {
+            var poolLength = pool.Length;
+            var indexes = ArrayPool<int>.Shared.Rent(poolLength);
+            var indexesCount = FillWithKeyIndexes(keys, poolLength, indexes);
+            for (var index = 0; index < indexesCount; ++index)
+            {
+                try
+                {
+                    await pool[indexes[index]].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseLocked(pool, indexes.AsSpan(..index));
+                    ArrayPool<int>.Shared.Return(indexes);
+                    throw;
+                }
+            }
+
+            try
+            {
+                return await resultFactory(argument, cancellationToken);
+            }
+            finally
+            {
+                ReleaseLocked(pool, indexes.AsSpan(..indexesCount));
+                ArrayPool<int>.Shared.Return(indexes);
+            }
+        }
+
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        return Core(pool_, keys, argument, resultFactory, cancellationToken);
+    }
+
+    public Task SynchronizeManyAsync<TKey, TArgument>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Func<TArgument, CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeManyAsync(
+            keys,
+            (argument, func),
+            static async (arguments, cancellationToken) =>
+            {
+                await arguments.func(arguments.argument, cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
+    public Task<TResult> SynchronizeManyAsync<TKey, TResult>(
+        IEnumerable<TKey> keys,
+        Func<CancellationToken, ValueTask<TResult>> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeManyAsync(
+            keys,
+            resultFactory,
+            static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
+            cancellationToken);
+
+    public Task SynchronizeManyAsync<TKey>(
+        IEnumerable<TKey> keys,
+        Func<CancellationToken, ValueTask> func,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeManyAsync(
+            keys,
+            func,
+            static async (func, cancellationToken) =>
+            {
+                await func(cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
+    public TResult SynchronizeMany<TKey, TArgument, TResult>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Func<TArgument, CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+    {
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        var poolLength = pool.Length;
+        var indexes = ArrayPool<int>.Shared.Rent(poolLength);
+        var indexesCount = FillWithKeyIndexes(keys, poolLength, indexes);
+        for (var index = 0; index < indexesCount; ++index)
+        {
+            try
+            {
+                pool[indexes[index]].Wait(cancellationToken);
+            }
+            catch
+            {
+                ReleaseLocked(pool, indexes.AsSpan(..index));
+                ArrayPool<int>.Shared.Return(indexes);
+                throw;
+            }
+        }
+
+        try
+        {
+            return resultFactory(argument, cancellationToken);
+        }
+        finally
+        {
+            ReleaseLocked(pool, indexes.AsSpan(..indexesCount));
+            ArrayPool<int>.Shared.Return(indexes);
+        }
+    }
+
+    public void SynchronizeMany<TKey, TArgument>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Action<TArgument, CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeMany(
+            keys,
+            (argument, action),
+            static (arguments, cancellationToken) =>
+            {
+                arguments.action(arguments.argument, cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
+    public TResult SynchronizeMany<TKey, TResult>(
+        IEnumerable<TKey> keys,
+        Func<CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeMany(
+            keys,
+            resultFactory,
+            static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
+            cancellationToken);
+
+    public void SynchronizeMany<TKey>(
+        IEnumerable<TKey> keys,
+        Action<CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => SynchronizeMany(
+            keys,
+            action,
+            static (func, cancellationToken) =>
+            {
+                func(cancellationToken);
+                return true;
+            },
+            cancellationToken);
+
+}
