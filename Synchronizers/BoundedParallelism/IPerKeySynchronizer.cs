@@ -85,6 +85,32 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    TResult SynchronizeMany<TKey, TArgument, TResult>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Func<TArgument, CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull;
+
+    void SynchronizeMany<TKey, TArgument>(
+        IEnumerable<TKey> keys,
+        TArgument argument,
+        Action<TArgument, CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull;
+
+    TResult SynchronizeMany<TKey, TResult>(
+        IEnumerable<TKey> keys,
+        Func<CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull;
+
+    void SynchronizeMany<TKey>(
+        IEnumerable<TKey> keys,
+        Action<CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull;
+
     Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
