@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 /// <param name="equalityComparer">
 /// Comparer used to determine if keys are the same.
 /// </param>
-public sealed class PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
+public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     : IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
@@ -74,13 +74,12 @@ public sealed class PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityCo
         }
     }
 
-    public async Task<TResult> SynchronizeAsync<TArgument, TResult>(
+    public async readonly Task<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
-
         var semaphores_ = semaphores;
         var semaphore = GetOrCreate(semaphores_, key);
         try
@@ -101,7 +100,7 @@ public sealed class PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityCo
         }
     }
 
-    public Task SynchronizeAsync<TArgument>(
+    public readonly Task SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
@@ -116,7 +115,7 @@ public sealed class PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityCo
             },
             cancellationToken);
 
-    public Task<TResult> SynchronizeAsync<TResult>(
+    public readonly Task<TResult> SynchronizeAsync<TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
@@ -126,7 +125,7 @@ public sealed class PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityCo
             static (func, token) => func(token),
             cancellationToken);
 
-    public Task SynchronizeAsync(
+    public readonly Task SynchronizeAsync(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
