@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-public partial class PerKeySynchronizer
+public partial struct PerKeySynchronizer
 {
     private static int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int poolLength, int[] keysIndexes)
         where TKey : notnull
@@ -34,7 +34,7 @@ public partial class PerKeySynchronizer
         }
     }
 
-    public Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
+    public readonly Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -81,7 +81,7 @@ public partial class PerKeySynchronizer
         return Core(pool_, keys, argument, resultFactory, cancellationToken);
     }
 
-    public Task SynchronizeManyAsync<TKey, TArgument>(
+    public readonly Task SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
@@ -97,7 +97,7 @@ public partial class PerKeySynchronizer
             },
             cancellationToken);
 
-    public Task<TResult> SynchronizeManyAsync<TKey, TResult>(
+    public readonly Task<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
@@ -108,7 +108,7 @@ public partial class PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
-    public Task SynchronizeManyAsync<TKey>(
+    public readonly Task SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
@@ -123,7 +123,7 @@ public partial class PerKeySynchronizer
             },
             cancellationToken);
 
-    public TResult SynchronizeMany<TKey, TArgument, TResult>(
+    public readonly TResult SynchronizeMany<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
@@ -160,7 +160,7 @@ public partial class PerKeySynchronizer
         }
     }
 
-    public void SynchronizeMany<TKey, TArgument>(
+    public readonly void SynchronizeMany<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Action<TArgument, CancellationToken> action,
@@ -176,7 +176,7 @@ public partial class PerKeySynchronizer
             },
             cancellationToken);
 
-    public TResult SynchronizeMany<TKey, TResult>(
+    public readonly TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
@@ -187,7 +187,7 @@ public partial class PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
-    public void SynchronizeMany<TKey>(
+    public readonly void SynchronizeMany<TKey>(
         IEnumerable<TKey> keys,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
