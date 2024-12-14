@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-// TODO: i am tempted to make key finding modulo and add synchronous versions of apis
 public sealed class PerKeySynchronizer
     : IPerKeySynchronizer, IDisposable
 {
@@ -127,6 +126,70 @@ public sealed class PerKeySynchronizer
             static async (func, token) =>
             {
                 await func(token);
+                return true;
+            },
+            cancellationToken);
+
+    public TResult Synchronize<TKey, TArgument, TResult>(
+        TKey key,
+        TArgument argument,
+        Func<TArgument, CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+    {
+        var pool_ = pool;
+        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        var index = GetKeyIndex(key, pool.Length);
+        var semaphore = pool[index];
+        semaphore.Wait(cancellationToken);
+        try
+        {
+            return resultFactory(argument, cancellationToken);
+        }
+        finally
+        {
+            _ = semaphore.Release();
+        }
+    }
+
+    public void Synchronize<TKey, TArgument>(
+        TKey key,
+        TArgument argument,
+        Action<TArgument, CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => Synchronize(
+            key,
+            (argument, action),
+            static (arguments, token) =>
+            {
+                arguments.action(arguments.argument, token);
+                return true;
+            },
+            cancellationToken);
+
+    public TResult Synchronize<TKey, TResult>(
+        TKey key,
+        Func<CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => Synchronize(
+            key,
+            resultFactory,
+            static (factory, token) => factory(token),
+            cancellationToken);
+
+    public void Synchronize<TKey>(
+        TKey key,
+        Action<CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => Synchronize(
+            key,
+            action,
+            (action, token) =>
+            {
+                action(token);
                 return true;
             },
             cancellationToken);
