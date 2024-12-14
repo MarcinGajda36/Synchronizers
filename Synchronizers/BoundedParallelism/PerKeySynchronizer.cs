@@ -9,25 +9,19 @@ using System.Threading;
 /// while allowing operations for different keys to happen in parallel.
 /// Uses Bit Mask to grab semaphore for given key.
 /// </summary>
-public partial struct PerKeySynchronizer
+public sealed partial class PerKeySynchronizer
     : IPerKeySynchronizer, IDisposable
 {
-    private const int DefaultMaxDegreeOfParallelism = 32;
     private SemaphoreSlim[] pool;
 
     /// <param name="maxDegreeOfParallelism">
     /// Maximum total parallel operation. 
     /// Has to be at least 1 and a power of 2.
     /// </param>
-    public PerKeySynchronizer(int maxDegreeOfParallelism = DefaultMaxDegreeOfParallelism)
+    public PerKeySynchronizer(int maxDegreeOfParallelism = 32)
     {
         ValidateSize(maxDegreeOfParallelism);
         pool = CreatePool(maxDegreeOfParallelism);
-    }
-
-    public PerKeySynchronizer()
-        : this(DefaultMaxDegreeOfParallelism)
-    {
     }
 
     private static SemaphoreSlim[] CreatePool(int maxDegreeOfParallelism)

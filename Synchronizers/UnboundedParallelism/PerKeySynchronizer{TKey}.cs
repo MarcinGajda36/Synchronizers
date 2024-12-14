@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 /// <param name="equalityComparer">
 /// Comparer used to determine if keys are the same.
 /// </param>
-public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
+public struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
     : IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
@@ -106,7 +106,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public readonly Task SynchronizeAsync<TArgument>(
+    public Task SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
@@ -121,7 +121,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             },
             cancellationToken);
 
-    public readonly Task<TResult> SynchronizeAsync<TResult>(
+    public Task<TResult> SynchronizeAsync<TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
@@ -131,7 +131,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             static (func, token) => func(token),
             cancellationToken);
 
-    public readonly Task SynchronizeAsync(
+    public Task SynchronizeAsync(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
@@ -145,7 +145,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             },
             cancellationToken);
 
-    public readonly TResult Synchronize<TArgument, TResult>(
+    public TResult Synchronize<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
@@ -171,7 +171,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public readonly void Synchronize<TArgument>(
+    public void Synchronize<TArgument>(
         TKey key,
         TArgument argument,
         Action<TArgument, CancellationToken> action,
@@ -186,7 +186,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             },
             cancellationToken);
 
-    public readonly TResult Synchronize<TResult>(
+    public TResult Synchronize<TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
@@ -196,7 +196,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             static (factory, token) => factory(token),
             cancellationToken);
 
-    public readonly void Synchronize(
+    public void Synchronize(
         TKey key,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
