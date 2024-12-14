@@ -19,6 +19,11 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     : IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
+    public PerKeySynchronizer()
+        : this(null)
+    {
+    }
+
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
     private readonly record struct CountSemaphorePair(int Count, SemaphoreSlim Semaphore);
 
