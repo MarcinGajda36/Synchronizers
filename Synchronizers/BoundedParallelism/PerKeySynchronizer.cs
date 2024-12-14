@@ -4,14 +4,15 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+// TODO: i am tempted to make key finding modulo and add synchronous versions of apis
 public sealed class PerKeySynchronizer
     : IPerKeySynchronizer, IDisposable
 {
     private SemaphoreSlim[] pool;
-    private readonly int poolIndexBitShift;
 
     /// <summary>
     /// Synchronizes operations so all operation on given key happen one at a time, 
@@ -31,7 +32,6 @@ public sealed class PerKeySynchronizer
         }
 
         pool = CreatePool(maxDegreeOfParallelism);
-        poolIndexBitShift = 32 - BitOperations.TrailingZeroCount(maxDegreeOfParallelism);
     }
 
     private static SemaphoreSlim[] CreatePool(int maxDegreeOfParallelism)
@@ -52,25 +52,10 @@ public sealed class PerKeySynchronizer
             "Max degree of parallelism has to be at least 1 and a power of 2.")
         : null;
 
-    private static int GetKeyIndex<TKey>(TKey key, int poolIndexBitShift)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetKeyIndex<TKey>(TKey key, int poolLength)
         where TKey : notnull
-    {
-        const uint Fibonacci = 2654435769u; // 2 ^ 32 / PHI
-        unchecked
-        {
-            if (poolIndexBitShift != 32)
-            {
-                var keyHash = (uint)key.GetHashCode();
-                var fibonacciHash = keyHash * Fibonacci;
-                var index = fibonacciHash >> poolIndexBitShift;
-                return (int)index;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-    }
+        => key.GetHashCode() & (poolLength - 1);
 
     public Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
@@ -80,14 +65,13 @@ public sealed class PerKeySynchronizer
         where TKey : notnull
     {
         static async Task<TResult> Core(
-            int poolIndexBitShift,
             SemaphoreSlim[] pool,
             TKey key,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
             CancellationToken cancellationToken)
         {
-            var index = GetKeyIndex(key, poolIndexBitShift);
+            var index = GetKeyIndex(key, pool.Length);
             var semaphore = pool[index];
             await semaphore.WaitAsync(cancellationToken);
             try
@@ -102,7 +86,7 @@ public sealed class PerKeySynchronizer
 
         var pool_ = pool;
         ObjectDisposedException.ThrowIf(pool_ == null, this);
-        return Core(poolIndexBitShift, pool_, key, argument, resultFactory, cancellationToken);
+        return Core(pool_, key, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeAsync<TKey, TArgument>(
@@ -147,13 +131,13 @@ public sealed class PerKeySynchronizer
             },
             cancellationToken);
 
-    private static int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int poolIndexBitShift, int[] keysIndexes)
+    private static int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int poolLength, int[] keysIndexes)
         where TKey : notnull
     {
         var keyCount = 0;
         foreach (var key in keys)
         {
-            var index = GetKeyIndex(key, poolIndexBitShift);
+            var index = GetKeyIndex(key, poolLength);
             if (keysIndexes.AsSpan(..keyCount).Contains(index) is false)
             {
                 keysIndexes[keyCount++] = index;
@@ -181,15 +165,15 @@ public sealed class PerKeySynchronizer
         }
 
         static async Task<TResult> Core(
-            int poolIndexBitShift,
             SemaphoreSlim[] pool,
             IEnumerable<TKey> keys,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
             CancellationToken cancellationToken)
         {
-            var indexes = ArrayPool<int>.Shared.Rent(pool.Length);
-            var indexesCount = FillWithKeyIndexes(keys, poolIndexBitShift, indexes);
+            var poolLength = pool.Length;
+            var indexes = ArrayPool<int>.Shared.Rent(poolLength);
+            var indexesCount = FillWithKeyIndexes(keys, poolLength, indexes);
             for (var index = 0; index < indexesCount; ++index)
             {
                 try
@@ -217,7 +201,7 @@ public sealed class PerKeySynchronizer
 
         var pool_ = pool;
         ObjectDisposedException.ThrowIf(pool_ == null, this);
-        return Core(poolIndexBitShift, pool_, keys, argument, resultFactory, cancellationToken);
+        return Core(pool_, keys, argument, resultFactory, cancellationToken);
     }
 
     public Task SynchronizeManyAsync<TKey, TArgument>(

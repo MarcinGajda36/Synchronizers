@@ -10,7 +10,7 @@ using PerKeySynchronizers.UnboundedParallelism;
 
 public class Tests
 {
-    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001);
+    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-1000, 2001);
 
     [Test]
     public async Task FibonacciSemaphorePool_Size32()
