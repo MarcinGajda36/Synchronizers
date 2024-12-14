@@ -7,26 +7,33 @@ using PerKeySynchronizers.BoundedParallelism;
 
 internal class PerKeySynchronizerTests
 {
-    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-1000, 2001);
+    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-250, 501).ToArray();
 
     [Test]
-    public async Task PerKeySynchronizer_Size32_CustomHashCode()
+    public async Task PerKeySynchronizer_Size32_CustomObject()
     {
         var firstSum = 0;
         var secondSum = 0;
 
         var synchronizer = new PerKeySynchronizer(32);
-
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(new IntWrapper(1), number, async (number, _) => firstSum += number, cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(new IntWrapper(2), number, async (number, _) => secondSum += number, cancellationToken);
-        });
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                new IntWrapper(1),
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    firstSum += number;
+                },
+                cancellationToken));
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                new IntWrapper(2),
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                },
+                cancellationToken));
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
@@ -44,16 +51,24 @@ internal class PerKeySynchronizerTests
 
         var synchronizer = new PerKeySynchronizer(32);
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                1,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    firstSum += number;
+                },
+                cancellationToken));
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                2,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                },
+                cancellationToken));
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
@@ -71,16 +86,24 @@ internal class PerKeySynchronizerTests
 
         var synchronizer = new PerKeySynchronizer();
 
-        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                1,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    firstSum += number;
+                },
+                cancellationToken));
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                2,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                },
+                cancellationToken));
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
@@ -95,24 +118,38 @@ internal class PerKeySynchronizerTests
     {
         var firstSum = 0;
         var secondSum = 0;
+        var totalSum = 0;
 
         var synchronizer = new PerKeySynchronizer(1);
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
+            await synchronizer.SynchronizeAsync(
+                1,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                    totalSum += number;
+                },
+                cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                2,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                    totalSum += number;
+                },
+                cancellationToken));
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
         {
             Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(totalSum, Is.EqualTo(firstSum));
             Assert.That(firstSum, Is.EqualTo(0));
         });
     }

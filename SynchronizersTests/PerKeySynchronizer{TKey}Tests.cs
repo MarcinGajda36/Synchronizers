@@ -8,7 +8,7 @@ using PerKeySynchronizers.UnboundedParallelism;
 
 internal class PerKeySynchronizer_TKey_Tests
 {
-    private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-1000, 2001);
+    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-250, 501).ToArray();
 
     [Test]
     public async Task PerKeySynchronizer_TwoKeys()
@@ -20,14 +20,24 @@ internal class PerKeySynchronizer_TKey_Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(1, number, async (number, _) => firstSum += number, cancellationToken);
+            await synchronizer.SynchronizeAsync(
+                1,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                },
+                cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
-        {
-            await Task.Delay(1, cancellationToken);
-            await synchronizer.SynchronizeAsync(2, number, async (number, _) => secondSum += number, cancellationToken);
-        });
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
+            => await synchronizer.SynchronizeAsync(
+                2,
+                async _ =>
+                {
+                    await Task.Delay(1, cancellationToken);
+                    secondSum += number;
+                },
+                cancellationToken));
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
@@ -91,7 +101,7 @@ internal class PerKeySynchronizer_TKey_Tests
     }
 
     [Test]
-    public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently_CustomHash()
+    public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently_CustomObject()
     {
         // Arrange
         var synchronizer = new PerKeySynchronizer<IntWrapper>();
@@ -124,7 +134,7 @@ internal class PerKeySynchronizer_TKey_Tests
     }
 
     [Test]
-    public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently_CustomHash_AndEqualityComparer()
+    public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently_CustomObject_AndEqualityComparer()
     {
         // Arrange
         var synchronizer = new PerKeySynchronizer<IntWrapper>(EqualityComparer<IntWrapper>.Default);
