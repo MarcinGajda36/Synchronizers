@@ -24,8 +24,9 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     {
     }
 
-    private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
     private readonly record struct CountSemaphorePair(int Count, SemaphoreSlim Semaphore);
+
+    private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
 
     private static SemaphoreSlim GetOrCreate(ConcurrentDictionary<TKey, CountSemaphorePair> semaphores, TKey key)
     {
@@ -140,6 +141,71 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             static async (func, token) =>
             {
                 await func(token);
+                return true;
+            },
+            cancellationToken);
+
+    public readonly TResult Synchronize<TArgument, TResult>(
+        TKey key,
+        TArgument argument,
+        Func<TArgument, CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+    {
+        var semaphores_ = semaphores;
+        var semaphore = GetOrCreate(semaphores_, key);
+        try
+        {
+            semaphore.Wait(cancellationToken);
+            try
+            {
+                return resultFactory(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
+        }
+        finally
+        {
+            Cleanup(semaphores_, key);
+        }
+    }
+
+    public readonly void Synchronize<TArgument>(
+        TKey key,
+        TArgument argument,
+        Action<TArgument, CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        => Synchronize(
+            key,
+            (argument, action),
+            static (arguments, token) =>
+            {
+                arguments.action(arguments.argument, token);
+                return true;
+            },
+            cancellationToken);
+
+    public readonly TResult Synchronize<TResult>(
+        TKey key,
+        Func<CancellationToken, TResult> resultFactory,
+        CancellationToken cancellationToken = default)
+        => Synchronize(
+            key,
+            resultFactory,
+            static (factory, token) => factory(token),
+            cancellationToken);
+
+    public readonly void Synchronize(
+        TKey key,
+        Action<CancellationToken> action,
+        CancellationToken cancellationToken = default)
+        => Synchronize(
+            key,
+            action,
+            (action, token) =>
+            {
+                action(token);
                 return true;
             },
             cancellationToken);
