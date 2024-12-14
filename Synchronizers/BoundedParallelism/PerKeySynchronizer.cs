@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,7 +50,6 @@ public sealed class PerKeySynchronizer
             "Max degree of parallelism has to be at least 1 and a power of 2.")
         : null;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetKeyIndex<TKey>(TKey key, int poolLength)
         where TKey : notnull
         => key.GetHashCode() & (poolLength - 1);

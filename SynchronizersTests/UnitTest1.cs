@@ -1,5 +1,6 @@
 namespace PerKeySynchronizersTests;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,42 @@ using PerKeySynchronizers.UnboundedParallelism;
 public class Tests
 {
     private readonly IEnumerable<int> sumsToZero = Enumerable.Range(-1000, 2001);
+
+    private class IntWrapper(int x) : IEquatable<IntWrapper?>
+    {
+        public int X { get; } = x;
+
+        public override bool Equals(object? obj) => Equals(obj as IntWrapper);
+        public bool Equals(IntWrapper? other) => other is not null && X == other.X;
+        public override int GetHashCode() => HashCode.Combine(X);
+    }
+
+    [Test]
+    public async Task FibonacciSemaphorePool_Size32_CustomHashCode()
+    {
+        var firstSum = 0;
+        var secondSum = 0;
+
+        var synchronizer = new PerKeySynchronizer(32);
+
+        var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
+        {
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(new IntWrapper(1), number, async (number, _) => firstSum += number, cancellationToken);
+        });
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
+        {
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(new IntWrapper(2), number, async (number, _) => secondSum += number, cancellationToken);
+        });
+        await Task.WhenAll(firstSumTask, secondSumTask);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstSum, Is.EqualTo(secondSum));
+            Assert.That(firstSum, Is.EqualTo(0));
+        });
+    }
 
     [Test]
     public async Task FibonacciSemaphorePool_Size32()
