@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public partial class PerKeySynchronizer
+public partial struct PerKeySynchronizer
 {
     private static void ReleaseAll(SemaphoreSlim[] pool, int index)
     {
@@ -48,7 +48,7 @@ public partial class PerKeySynchronizer
         }
 
         var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        ValidateDispose(pool_);
         return Core(pool_, argument, resultFactory, cancellationToken);
     }
 
@@ -91,16 +91,16 @@ public partial class PerKeySynchronizer
         CancellationToken cancellationToken = default)
     {
         var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
-        for (var index = 0; index < pool.Length; ++index)
+        ValidateDispose(pool_);
+        for (var index = 0; index < pool_.Length; ++index)
         {
             try
             {
-                pool[index].Wait(cancellationToken);
+                pool_[index].Wait(cancellationToken);
             }
             catch
             {
-                ReleaseAll(pool, index - 1);
+                ReleaseAll(pool_, index - 1);
                 throw;
             }
         }
@@ -111,7 +111,7 @@ public partial class PerKeySynchronizer
         }
         finally
         {
-            ReleaseAll(pool, pool.Length - 1);
+            ReleaseAll(pool_, pool_.Length - 1);
         }
     }
 

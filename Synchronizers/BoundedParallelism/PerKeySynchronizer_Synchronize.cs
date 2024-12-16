@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public partial class PerKeySynchronizer
+public partial struct PerKeySynchronizer
 {
     public Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
@@ -33,7 +33,7 @@ public partial class PerKeySynchronizer
         }
 
         var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        ValidateDispose(pool_);
         return Core(pool_, key, argument, resultFactory, cancellationToken);
     }
 
@@ -87,9 +87,9 @@ public partial class PerKeySynchronizer
         where TKey : notnull
     {
         var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
-        var index = GetKeyIndex(key, pool.Length);
-        var semaphore = pool[index];
+        ValidateDispose(pool_);
+        var index = GetKeyIndex(key, pool_.Length);
+        var semaphore = pool_[index];
         semaphore.Wait(cancellationToken);
         try
         {

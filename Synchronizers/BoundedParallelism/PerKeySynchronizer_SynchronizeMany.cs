@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-public partial class PerKeySynchronizer
+public partial struct PerKeySynchronizer
 {
     private static int FillWithKeyIndexes<TKey>(IEnumerable<TKey> keys, int poolLength, int[] keysIndexes)
         where TKey : notnull
@@ -77,7 +77,7 @@ public partial class PerKeySynchronizer
         }
 
         var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
+        ValidateDispose(pool_);
         return Core(pool_, keys, argument, resultFactory, cancellationToken);
     }
 
@@ -131,19 +131,19 @@ public partial class PerKeySynchronizer
         where TKey : notnull
     {
         var pool_ = pool;
-        ObjectDisposedException.ThrowIf(pool_ == null, this);
-        var poolLength = pool.Length;
+        ValidateDispose(pool_);
+        var poolLength = pool_.Length;
         var indexes = ArrayPool<int>.Shared.Rent(poolLength);
         var indexesCount = FillWithKeyIndexes(keys, poolLength, indexes);
         for (var index = 0; index < indexesCount; ++index)
         {
             try
             {
-                pool[indexes[index]].Wait(cancellationToken);
+                pool_[indexes[index]].Wait(cancellationToken);
             }
             catch
             {
-                ReleaseLocked(pool, indexes.AsSpan(..index));
+                ReleaseLocked(pool_, indexes.AsSpan(..index));
                 ArrayPool<int>.Shared.Return(indexes);
                 throw;
             }
@@ -155,7 +155,7 @@ public partial class PerKeySynchronizer
         }
         finally
         {
-            ReleaseLocked(pool, indexes.AsSpan(..indexesCount));
+            ReleaseLocked(pool_, indexes.AsSpan(..indexesCount));
             ArrayPool<int>.Shared.Return(indexes);
         }
     }
