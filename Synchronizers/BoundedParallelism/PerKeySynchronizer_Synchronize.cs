@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 public partial struct PerKeySynchronizer
 {
-    public Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
+    public readonly Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -37,7 +37,7 @@ public partial struct PerKeySynchronizer
         return Core(pool_, key, argument, resultFactory, cancellationToken);
     }
 
-    public Task SynchronizeAsync<TKey, TArgument>(
+    public readonly Task SynchronizeAsync<TKey, TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
@@ -53,7 +53,7 @@ public partial struct PerKeySynchronizer
             },
             cancellationToken);
 
-    public Task<TResult> SynchronizeAsync<TKey, TResult>(
+    public readonly Task<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
@@ -64,7 +64,7 @@ public partial struct PerKeySynchronizer
             static (func, token) => func(token),
             cancellationToken);
 
-    public Task SynchronizeAsync<TKey>(
+    public readonly Task SynchronizeAsync<TKey>(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
@@ -79,7 +79,7 @@ public partial struct PerKeySynchronizer
             },
             cancellationToken);
 
-    public TResult Synchronize<TKey, TArgument, TResult>(
+    public readonly TResult Synchronize<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
@@ -101,7 +101,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
-    public void Synchronize<TKey, TArgument>(
+    public readonly void Synchronize<TKey, TArgument>(
         TKey key,
         TArgument argument,
         Action<TArgument, CancellationToken> action,
@@ -117,7 +117,7 @@ public partial struct PerKeySynchronizer
             },
             cancellationToken);
 
-    public TResult Synchronize<TKey, TResult>(
+    public readonly TResult Synchronize<TKey, TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
@@ -128,7 +128,7 @@ public partial struct PerKeySynchronizer
             static (factory, token) => factory(token),
             cancellationToken);
 
-    public void Synchronize<TKey>(
+    public readonly void Synchronize<TKey>(
         TKey key,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
