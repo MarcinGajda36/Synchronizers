@@ -124,26 +124,31 @@ internal class PerKeySynchronizerTests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
+            await Task.Delay(1, cancellationToken);
             await synchronizer.SynchronizeAsync(
                 1,
                 async _ =>
                 {
-                    await Task.Delay(1, cancellationToken);
+                    await Task.Yield();
                     secondSum += number;
                     totalSum += number;
                 },
                 cancellationToken);
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
-            => await synchronizer.SynchronizeAsync(
+            =>
+        {
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(
                 2,
                 async _ =>
                 {
-                    await Task.Delay(1, cancellationToken);
+                    await Task.Yield();
                     secondSum += number;
                     totalSum += number;
                 },
-                cancellationToken));
+                cancellationToken);
+        });
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
