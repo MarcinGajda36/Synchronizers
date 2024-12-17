@@ -56,14 +56,40 @@ public partial struct PerKeySynchronizer
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
-        => SynchronizeAllAsync(
-            (argument, func),
-            static async (arguments, cancellationToken) =>
+    {
+        static async Task Core(
+            SemaphoreSlim[] pool,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask> func,
+            CancellationToken cancellationToken)
+        {
+            for (var index = 0; index < pool.Length; ++index)
             {
-                await arguments.func(arguments.argument, cancellationToken);
-                return default(object);
-            },
-            cancellationToken);
+                try
+                {
+                    await pool[index].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseAll(pool, index - 1);
+                    throw;
+                }
+            }
+
+            try
+            {
+                await func(argument, cancellationToken);
+            }
+            finally
+            {
+                ReleaseAll(pool, pool.Length - 1);
+            }
+        }
+
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        return Core(pool_, argument, func, cancellationToken);
+    }
 
     public readonly Task<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
@@ -78,11 +104,7 @@ public partial struct PerKeySynchronizer
         CancellationToken cancellationToken = default)
         => SynchronizeAllAsync(
             func,
-            static async (func, cancellationToken) =>
-            {
-                await func(cancellationToken);
-                return default(object);
-            },
+            static (func, cancellationToken) => func(cancellationToken),
             cancellationToken);
 
     public readonly TResult SynchronizeAll<TArgument, TResult>(
@@ -115,39 +137,49 @@ public partial struct PerKeySynchronizer
         }
     }
 
-    public readonly void SynchronizeAll<TKey, TArgument>(
+    public readonly void SynchronizeAll<TArgument>(
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
-        where TKey : notnull
-        => SynchronizeAll(
-            (argument, action),
-            static (arguments, cancellationToken) =>
+    {
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        for (var index = 0; index < pool_.Length; ++index)
+        {
+            try
             {
-                arguments.action(arguments.argument, cancellationToken);
-                return default(object);
-            },
-            cancellationToken);
+                pool_[index].Wait(cancellationToken);
+            }
+            catch
+            {
+                ReleaseAll(pool_, index - 1);
+                throw;
+            }
+        }
 
-    public readonly TResult SynchronizeAll<TKey, TResult>(
+        try
+        {
+            action(argument, cancellationToken);
+        }
+        finally
+        {
+            ReleaseAll(pool_, pool_.Length - 1);
+        }
+    }
+
+    public readonly TResult SynchronizeAll<TResult>(
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
-        where TKey : notnull
         => SynchronizeAll(
             resultFactory,
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
-    public readonly void SynchronizeAll<TKey>(
+    public readonly void SynchronizeAll(
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
-        where TKey : notnull
         => SynchronizeAll(
             action,
-            static (func, cancellationToken) =>
-            {
-                func(cancellationToken);
-                return default(object);
-            },
+            static (action, cancellationToken) => action(cancellationToken),
             cancellationToken);
 }

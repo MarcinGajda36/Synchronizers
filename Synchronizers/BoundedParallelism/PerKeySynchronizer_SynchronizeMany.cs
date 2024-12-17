@@ -91,15 +91,46 @@ public partial struct PerKeySynchronizer
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => SynchronizeManyAsync(
-            keys,
-            (argument, func),
-            static async (arguments, cancellationToken) =>
+    {
+        static async Task Core(
+            SemaphoreSlim[] pool,
+            IEnumerable<TKey> keys,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask> func,
+            CancellationToken cancellationToken)
+        {
+            var poolLength = pool.Length;
+            var indexes = ArrayPool<int>.Shared.Rent(poolLength);
+            var indexesCount = FillWithKeyIndexes(keys, poolLength, indexes);
+            for (var index = 0; index < indexesCount; ++index)
             {
-                await arguments.func(arguments.argument, cancellationToken);
-                return default(object);
-            },
-            cancellationToken);
+                try
+                {
+                    await pool[indexes[index]].WaitAsync(cancellationToken);
+                }
+                catch
+                {
+                    ReleaseLocked(pool, indexes.AsSpan(..index));
+                    ArrayPool<int>.Shared.Return(indexes);
+                    throw;
+                }
+            }
+
+            try
+            {
+                await func(argument, cancellationToken);
+            }
+            finally
+            {
+                ReleaseLocked(pool, indexes.AsSpan(..indexesCount));
+                ArrayPool<int>.Shared.Return(indexes);
+            }
+        }
+
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        return Core(pool_, keys, argument, func, cancellationToken);
+    }
 
     public readonly Task<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -120,11 +151,7 @@ public partial struct PerKeySynchronizer
         => SynchronizeManyAsync(
             keys,
             func,
-            static async (func, cancellationToken) =>
-            {
-                await func(cancellationToken);
-                return default(object);
-            },
+            static (func, cancellationToken) => func(cancellationToken),
             cancellationToken);
 
     public readonly TResult SynchronizeMany<TKey, TArgument, TResult>(
@@ -170,15 +197,36 @@ public partial struct PerKeySynchronizer
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => SynchronizeMany(
-            keys,
-            (argument, action),
-            static (arguments, cancellationToken) =>
+    {
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        var poolLength = pool_.Length;
+        var indexes = ArrayPool<int>.Shared.Rent(poolLength);
+        var indexesCount = FillWithKeyIndexes(keys, poolLength, indexes);
+        for (var index = 0; index < indexesCount; ++index)
+        {
+            try
             {
-                arguments.action(arguments.argument, cancellationToken);
-                return default(object);
-            },
-            cancellationToken);
+                pool_[indexes[index]].Wait(cancellationToken);
+            }
+            catch
+            {
+                ReleaseLocked(pool_, indexes.AsSpan(..index));
+                ArrayPool<int>.Shared.Return(indexes);
+                throw;
+            }
+        }
+
+        try
+        {
+            action(argument, cancellationToken);
+        }
+        finally
+        {
+            ReleaseLocked(pool_, indexes.AsSpan(..indexesCount));
+            ArrayPool<int>.Shared.Return(indexes);
+        }
+    }
 
     public readonly TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -199,11 +247,7 @@ public partial struct PerKeySynchronizer
         => SynchronizeMany(
             keys,
             action,
-            static (func, cancellationToken) =>
-            {
-                func(cancellationToken);
-                return default(object);
-            },
+            static (func, cancellationToken) => func(cancellationToken),
             cancellationToken);
 
 }

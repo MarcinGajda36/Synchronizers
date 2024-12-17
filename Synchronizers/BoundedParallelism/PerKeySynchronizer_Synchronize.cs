@@ -43,41 +43,45 @@ public partial struct PerKeySynchronizer
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => SynchronizeAsync(
-            key,
-            (argument, func),
-            static async (arguments, cancellationToken) =>
+    {
+        static async Task Core(
+            SemaphoreSlim[] pool,
+            TKey key,
+            TArgument argument,
+            Func<TArgument, CancellationToken, ValueTask> func,
+            CancellationToken cancellationToken)
+        {
+            var index = GetKeyIndex(key, pool.Length);
+            var semaphore = pool[index];
+            await semaphore.WaitAsync(cancellationToken);
+            try
             {
-                await arguments.func(arguments.argument, cancellationToken);
-                return default(object);
-            },
-            cancellationToken);
+                await func(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
+        }
+
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        return Core(pool_, key, argument, func, cancellationToken);
+    }
 
     public readonly Task<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => SynchronizeAsync(
-            key,
-            resultFactory,
-            static (func, token) => func(token),
-            cancellationToken);
+        => SynchronizeAsync(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
     public readonly Task SynchronizeAsync<TKey>(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => SynchronizeAsync(
-            key,
-            func,
-            static async (func, token) =>
-            {
-                await func(token);
-                return default(object);
-            },
-            cancellationToken);
+        => SynchronizeAsync(key, func, static (func, token) => func(token), cancellationToken);
 
     public readonly TResult Synchronize<TKey, TArgument, TResult>(
         TKey key,
@@ -107,39 +111,33 @@ public partial struct PerKeySynchronizer
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => Synchronize(
-            key,
-            (argument, action),
-            static (arguments, token) =>
-            {
-                arguments.action(arguments.argument, token);
-                return default(object);
-            },
-            cancellationToken);
+    {
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        var index = GetKeyIndex(key, pool_.Length);
+        var semaphore = pool_[index];
+        semaphore.Wait(cancellationToken);
+        try
+        {
+            action(argument, cancellationToken);
+        }
+        finally
+        {
+            _ = semaphore.Release();
+        }
+    }
 
     public readonly TResult Synchronize<TKey, TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => Synchronize(
-            key,
-            resultFactory,
-            static (factory, token) => factory(token),
-            cancellationToken);
+        => Synchronize(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
     public readonly void Synchronize<TKey>(
         TKey key,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => Synchronize(
-            key,
-            action,
-            (action, token) =>
-            {
-                action(token);
-                return default(object);
-            },
-            cancellationToken);
+        => Synchronize(key, action, (action, token) => action(token), cancellationToken);
 }

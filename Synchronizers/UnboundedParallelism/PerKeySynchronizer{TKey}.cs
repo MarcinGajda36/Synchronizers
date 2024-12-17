@@ -103,44 +103,43 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public Task SynchronizeAsync<TArgument>(
+    public async Task SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
-        => SynchronizeAsync(
-            key,
-            (argument, func),
-            static async (arguments, cancellationToken) =>
+    {
+        var semaphores_ = semaphores;
+        var semaphore = GetOrCreate(semaphores_, key);
+        try
+        {
+            await semaphore.WaitAsync(cancellationToken);
+            try
             {
-                await arguments.func(arguments.argument, cancellationToken);
-                return default(object);
-            },
-            cancellationToken);
+                await func(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
+        }
+        finally
+        {
+            Cleanup(semaphores_, key);
+        }
+    }
 
     public Task<TResult> SynchronizeAsync<TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
-        => SynchronizeAsync(
-            key,
-            resultFactory,
-            static (func, token) => func(token),
-            cancellationToken);
+        => SynchronizeAsync(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
     public Task SynchronizeAsync(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
-        => SynchronizeAsync(
-            key,
-            func,
-            static async (func, token) =>
-            {
-                await func(token);
-                return default(object);
-            },
-            cancellationToken);
+        => SynchronizeAsync(key, func, static (func, token) => func(token), cancellationToken);
 
     public TResult Synchronize<TArgument, TResult>(
         TKey key,
@@ -173,37 +172,36 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
-        => Synchronize(
-            key,
-            (argument, action),
-            static (arguments, token) =>
+    {
+        var semaphores_ = semaphores;
+        var semaphore = GetOrCreate(semaphores_, key);
+        try
+        {
+            semaphore.Wait(cancellationToken);
+            try
             {
-                arguments.action(arguments.argument, token);
-                return default(object);
-            },
-            cancellationToken);
+                action(argument, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
+        }
+        finally
+        {
+            Cleanup(semaphores_, key);
+        }
+    }
 
     public TResult Synchronize<TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
-        => Synchronize(
-            key,
-            resultFactory,
-            static (factory, token) => factory(token),
-            cancellationToken);
+        => Synchronize(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
     public void Synchronize(
         TKey key,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
-        => Synchronize(
-            key,
-            action,
-            (action, token) =>
-            {
-                action(token);
-                return default(object);
-            },
-            cancellationToken);
+        => Synchronize(key, action, static (action, token) => action(token), cancellationToken);
 }
