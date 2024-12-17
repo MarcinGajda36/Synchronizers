@@ -6,24 +6,24 @@ using System.Threading.Tasks;
 public interface IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
-    Task<TResult> SynchronizeAsync<TArgument, TResult>(
+    ValueTask<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
-    Task SynchronizeAsync<TArgument>(
+    ValueTask SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
-    Task<TResult> SynchronizeAsync<TResult>(
+    ValueTask<TResult> SynchronizeAsync<TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
-    Task SynchronizeAsync(
+    ValueTask SynchronizeAsync(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);

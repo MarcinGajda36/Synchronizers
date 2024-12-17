@@ -38,14 +38,14 @@ public partial struct PerKeySynchronizer
         }
     }
 
-    public readonly Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
+    public readonly ValueTask<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        static async Task<TResult> Core(
+        static async ValueTask<TResult> Core(
             SemaphoreSlim[] pool,
             IEnumerable<TKey> keys,
             TArgument argument,
@@ -85,14 +85,14 @@ public partial struct PerKeySynchronizer
         return Core(pool_, keys, argument, resultFactory, cancellationToken);
     }
 
-    public readonly Task SynchronizeManyAsync<TKey, TArgument>(
+    public readonly ValueTask SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        static async Task Core(
+        static async ValueTask Core(
             SemaphoreSlim[] pool,
             IEnumerable<TKey> keys,
             TArgument argument,
@@ -132,7 +132,7 @@ public partial struct PerKeySynchronizer
         return Core(pool_, keys, argument, func, cancellationToken);
     }
 
-    public readonly Task<TResult> SynchronizeManyAsync<TKey, TResult>(
+    public readonly ValueTask<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
@@ -143,7 +143,7 @@ public partial struct PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
-    public readonly Task SynchronizeManyAsync<TKey>(
+    public readonly ValueTask SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)

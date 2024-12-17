@@ -20,24 +20,28 @@ internal class PerKeySynchronizer_TKey_Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
+            await Task.Delay(1, cancellationToken);
             await synchronizer.SynchronizeAsync(
                 1,
                 async _ =>
                 {
-                    await Task.Delay(1, cancellationToken);
+                    await Task.Yield();
+                    firstSum += number;
+                },
+                cancellationToken);
+        });
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
+        {
+            await Task.Delay(1, cancellationToken);
+            await synchronizer.SynchronizeAsync(
+                2,
+                async _ =>
+                {
+                    await Task.Yield();
                     secondSum += number;
                 },
                 cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
-            => await synchronizer.SynchronizeAsync(
-                2,
-                async _ =>
-                {
-                    await Task.Delay(1, cancellationToken);
-                    secondSum += number;
-                },
-                cancellationToken));
         await Task.WhenAll(firstSumTask, secondSumTask);
 
         Assert.Multiple(() =>
@@ -94,7 +98,7 @@ internal class PerKeySynchronizer_TKey_Tests
             executionOrder += "3";
         });
 
-        await Task.WhenAll(task1, task2, task3);
+        await Task.WhenAll(task1.AsTask(), task2.AsTask(), task3.AsTask());
 
         // Assert
         Assert.That(executionOrder, Is.EqualTo("231"));
@@ -127,7 +131,7 @@ internal class PerKeySynchronizer_TKey_Tests
             executionOrder += "3";
         });
 
-        await Task.WhenAll(task1, task2, task3);
+        await Task.WhenAll(task1.AsTask(), task2.AsTask(), task3.AsTask());
 
         // Assert
         Assert.That(executionOrder, Is.EqualTo("231"));
@@ -160,7 +164,7 @@ internal class PerKeySynchronizer_TKey_Tests
             executionOrder += "3";
         });
 
-        await Task.WhenAll(task1, task2, task3);
+        await Task.WhenAll(task1.AsTask(), task2.AsTask(), task3.AsTask());
 
         // Assert
         Assert.That(executionOrder, Is.EqualTo("231"));

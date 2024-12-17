@@ -13,12 +13,12 @@ public partial struct PerKeySynchronizer
         }
     }
 
-    public readonly Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
+    public readonly ValueTask<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
-        static async Task<TResult> Core(
+        static async ValueTask<TResult> Core(
             SemaphoreSlim[] pool,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -52,12 +52,12 @@ public partial struct PerKeySynchronizer
         return Core(pool_, argument, resultFactory, cancellationToken);
     }
 
-    public readonly Task SynchronizeAllAsync<TArgument>(
+    public readonly ValueTask SynchronizeAllAsync<TArgument>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
     {
-        static async Task Core(
+        static async ValueTask Core(
             SemaphoreSlim[] pool,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask> func,
@@ -91,7 +91,7 @@ public partial struct PerKeySynchronizer
         return Core(pool_, argument, func, cancellationToken);
     }
 
-    public readonly Task<TResult> SynchronizeAllAsync<TResult>(
+    public readonly ValueTask<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         => SynchronizeAllAsync(
@@ -99,7 +99,7 @@ public partial struct PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
-    public readonly Task SynchronizeAllAsync(
+    public readonly ValueTask SynchronizeAllAsync(
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         => SynchronizeAllAsync(

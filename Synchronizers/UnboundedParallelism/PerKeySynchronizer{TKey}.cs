@@ -77,7 +77,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public async readonly Task<TResult> SynchronizeAsync<TArgument, TResult>(
+    public async readonly ValueTask<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -103,7 +103,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public async Task SynchronizeAsync<TArgument>(
+    public async ValueTask SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
@@ -129,13 +129,13 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public Task<TResult> SynchronizeAsync<TResult>(
+    public ValueTask<TResult> SynchronizeAsync<TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         => SynchronizeAsync(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
-    public Task SynchronizeAsync(
+    public ValueTask SynchronizeAsync(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)

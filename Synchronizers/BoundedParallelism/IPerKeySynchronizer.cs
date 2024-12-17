@@ -7,27 +7,27 @@ using System.Threading.Tasks;
 
 public interface IPerKeySynchronizer
 {
-    Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
+    ValueTask<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task SynchronizeAsync<TKey, TArgument>(
+    ValueTask SynchronizeAsync<TKey, TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task<TResult> SynchronizeAsync<TKey, TResult>(
+    ValueTask<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task SynchronizeAsync<TKey>(
+    ValueTask SynchronizeAsync<TKey>(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
@@ -59,27 +59,27 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
+    ValueTask<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task SynchronizeManyAsync<TKey, TArgument>(
+    ValueTask SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task<TResult> SynchronizeManyAsync<TKey, TResult>(
+    ValueTask<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task SynchronizeManyAsync<TKey>(
+    ValueTask SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
@@ -111,21 +111,21 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
-    Task<TResult> SynchronizeAllAsync<TArgument, TResult>(
+    ValueTask<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
-    Task SynchronizeAllAsync<TArgument>(
+    ValueTask SynchronizeAllAsync<TArgument>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
-    Task<TResult> SynchronizeAllAsync<TResult>(
+    ValueTask<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
-    Task SynchronizeAllAsync(
+    ValueTask SynchronizeAllAsync(
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 

@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 
 public partial struct PerKeySynchronizer
 {
-    public readonly Task<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
+    public readonly ValueTask<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        static async Task<TResult> Core(
+        static async ValueTask<TResult> Core(
             SemaphoreSlim[] pool,
             TKey key,
             TArgument argument,
@@ -37,14 +37,14 @@ public partial struct PerKeySynchronizer
         return Core(pool_, key, argument, resultFactory, cancellationToken);
     }
 
-    public readonly Task SynchronizeAsync<TKey, TArgument>(
+    public readonly ValueTask SynchronizeAsync<TKey, TArgument>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        static async Task Core(
+        static async ValueTask Core(
             SemaphoreSlim[] pool,
             TKey key,
             TArgument argument,
@@ -69,14 +69,14 @@ public partial struct PerKeySynchronizer
         return Core(pool_, key, argument, func, cancellationToken);
     }
 
-    public readonly Task<TResult> SynchronizeAsync<TKey, TResult>(
+    public readonly ValueTask<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull
         => SynchronizeAsync(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
-    public readonly Task SynchronizeAsync<TKey>(
+    public readonly ValueTask SynchronizeAsync<TKey>(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
