@@ -19,10 +19,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     : IPerKeySynchronizer<TKey>
     where TKey : notnull
 {
-    public PerKeySynchronizer()
-        : this(null)
-    {
-    }
+    public PerKeySynchronizer() : this(null) { }
 
     private readonly record struct CountSemaphorePair(int Count, SemaphoreSlim Semaphore);
 
@@ -117,7 +114,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             static async (arguments, cancellationToken) =>
             {
                 await arguments.func(arguments.argument, cancellationToken);
-                return true;
+                return default(object);
             },
             cancellationToken);
 
@@ -141,7 +138,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             static async (func, token) =>
             {
                 await func(token);
-                return true;
+                return default(object);
             },
             cancellationToken);
 
@@ -182,7 +179,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             static (arguments, token) =>
             {
                 arguments.action(arguments.argument, token);
-                return true;
+                return default(object);
             },
             cancellationToken);
 
@@ -206,7 +203,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             (action, token) =>
             {
                 action(token);
-                return true;
+                return default(object);
             },
             cancellationToken);
 }

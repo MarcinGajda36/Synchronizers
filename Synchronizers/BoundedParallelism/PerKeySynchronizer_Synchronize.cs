@@ -49,7 +49,7 @@ public partial struct PerKeySynchronizer
             static async (arguments, cancellationToken) =>
             {
                 await arguments.func(arguments.argument, cancellationToken);
-                return true;
+                return default(object);
             },
             cancellationToken);
 
@@ -75,7 +75,7 @@ public partial struct PerKeySynchronizer
             static async (func, token) =>
             {
                 await func(token);
-                return true;
+                return default(object);
             },
             cancellationToken);
 
@@ -113,7 +113,7 @@ public partial struct PerKeySynchronizer
             static (arguments, token) =>
             {
                 arguments.action(arguments.argument, token);
-                return true;
+                return default(object);
             },
             cancellationToken);
 
@@ -139,7 +139,7 @@ public partial struct PerKeySynchronizer
             (action, token) =>
             {
                 action(token);
-                return true;
+                return default(object);
             },
             cancellationToken);
 }
