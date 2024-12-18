@@ -1,12 +1,13 @@
 ﻿namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
 public partial struct PerKeySynchronizer
-    : IPerKeySynchronizer, IDisposable
+    : IPerKeySynchronizer, IDisposable, IEquatable<PerKeySynchronizer>
 {
     private const int DefaultMaxDegreeOfParallelism = 32;
 
@@ -71,4 +72,15 @@ public partial struct PerKeySynchronizer
             throw new ObjectDisposedException(typeof(PerKeySynchronizer).FullName);
         }
     }
+
+    public readonly bool Equals(PerKeySynchronizer other)
+        => EqualityComparer<SemaphoreSlim[]>.Default.Equals(pool, other.pool);
+    public override readonly bool Equals(object? obj)
+        => obj is PerKeySynchronizer other && Equals(other);
+    public static bool operator ==(PerKeySynchronizer left, PerKeySynchronizer right)
+        => left.Equals(right);
+    public static bool operator !=(PerKeySynchronizer left, PerKeySynchronizer right)
+        => !left.Equals(right);
+    public override readonly int GetHashCode()
+        => EqualityComparer<SemaphoreSlim[]>.Default.GetHashCode(pool);
 }

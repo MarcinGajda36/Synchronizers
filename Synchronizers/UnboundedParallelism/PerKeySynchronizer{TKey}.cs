@@ -16,11 +16,13 @@ using System.Threading.Tasks;
 /// Comparer used to determine if keys are the same.
 /// </param>
 public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalityComparer = null)
-    : IPerKeySynchronizer<TKey>
+    : IPerKeySynchronizer<TKey>, IEquatable<PerKeySynchronizer<TKey>>
     where TKey : notnull
 {
     public PerKeySynchronizer() : this(null) { }
 
+    // I don't need all that record gives me, 
+    // i should change to struct and override just the equalities and not toStrings
     private readonly record struct CountSemaphorePair(int Count, SemaphoreSlim Semaphore);
 
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
@@ -204,4 +206,15 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
         => Synchronize(key, action, static (action, token) => action(token), cancellationToken);
+
+    public readonly bool Equals(PerKeySynchronizer<TKey> other)
+        => EqualityComparer<ConcurrentDictionary<TKey, CountSemaphorePair>>.Default.Equals(semaphores, other.semaphores);
+    public override readonly bool Equals(object? obj)
+        => obj is PerKeySynchronizer<TKey> other && Equals(other);
+    public static bool operator ==(PerKeySynchronizer<TKey> left, PerKeySynchronizer<TKey> right)
+        => left.Equals(right);
+    public static bool operator !=(PerKeySynchronizer<TKey> left, PerKeySynchronizer<TKey> right)
+        => !left.Equals(right);
+    public override readonly int GetHashCode()
+        => EqualityComparer<ConcurrentDictionary<TKey, CountSemaphorePair>>.Default.GetHashCode(semaphores);
 }
