@@ -6,6 +6,20 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+internal readonly struct CountSemaphorePair(SemaphoreSlim semaphore, int count)
+    : IEquatable<CountSemaphorePair>
+{
+    public readonly SemaphoreSlim Semaphore = semaphore;
+    public readonly int Count = count;
+
+    public readonly bool Equals(CountSemaphorePair other)
+        => ReferenceEquals(Semaphore, other.Semaphore) && Count == other.Count;
+    public override readonly bool Equals(object? obj)
+        => obj is CountSemaphorePair other && Equals(other);
+    public override readonly int GetHashCode()
+        => HashCode.Combine(Semaphore, Count);
+}
+
 /// <summary>
 /// Synchronizes operations so all operation on given key happen one at a time, 
 /// while allowing operations for different keys to happen in parallel.
@@ -20,20 +34,6 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     where TKey : notnull
 {
     public PerKeySynchronizer() : this(null) { }
-
-    private readonly struct CountSemaphorePair(SemaphoreSlim semaphore, int count)
-        : IEquatable<CountSemaphorePair>
-    {
-        public readonly SemaphoreSlim Semaphore = semaphore;
-        public readonly int Count = count;
-
-        public readonly bool Equals(CountSemaphorePair other)
-            => ReferenceEquals(Semaphore, other.Semaphore) && Count == other.Count;
-        public override readonly bool Equals(object? obj)
-            => obj is CountSemaphorePair other && Equals(other);
-        public override readonly int GetHashCode()
-            => HashCode.Combine(Semaphore, Count);
-    }
 
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
 
