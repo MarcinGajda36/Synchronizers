@@ -31,10 +31,6 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             => ReferenceEquals(Semaphore, other.Semaphore) && Count == other.Count;
         public override readonly bool Equals(object? obj)
             => obj is CountSemaphorePair other && Equals(other);
-        public static bool operator ==(CountSemaphorePair left, CountSemaphorePair right)
-            => left.Equals(right);
-        public static bool operator !=(CountSemaphorePair left, CountSemaphorePair right)
-            => !left.Equals(right);
         public override readonly int GetHashCode()
             => HashCode.Combine(Semaphore, Count);
     }
