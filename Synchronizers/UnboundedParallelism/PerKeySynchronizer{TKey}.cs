@@ -25,7 +25,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         : IEquatable<CountSemaphorePair>
     {
         public readonly SemaphoreSlim Semaphore = semaphore;
-        public readonly int Count { get; init; } = count;
+        public readonly int Count = count;
 
         public readonly bool Equals(CountSemaphorePair other)
             => ReferenceEquals(Semaphore, other.Semaphore) && Count == other.Count;
@@ -43,7 +43,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         {
             if (semaphores.TryGetValue(key, out var old))
             {
-                var incremented = old with { Count = old.Count + 1 };
+                var incremented = new CountSemaphorePair(old.Semaphore, old.Count + 1);
                 if (semaphores.TryUpdate(key, incremented, old))
                 {
                     return old.Semaphore;
@@ -80,7 +80,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             }
             else
             {
-                var decremented = old with { Count = old.Count - 1 };
+                var decremented = new CountSemaphorePair(old.Semaphore, old.Count - 1);
                 if (semaphores.TryUpdate(key, decremented, old))
                 {
                     return;
