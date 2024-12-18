@@ -1,7 +1,6 @@
 ﻿namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -74,7 +73,7 @@ public partial struct PerKeySynchronizer
     }
 
     public readonly bool Equals(PerKeySynchronizer other)
-        => EqualityComparer<SemaphoreSlim[]>.Default.Equals(pool, other.pool);
+        => ReferenceEquals(pool, other.pool);
     public override readonly bool Equals(object? obj)
         => obj is PerKeySynchronizer other && Equals(other);
     public static bool operator ==(PerKeySynchronizer left, PerKeySynchronizer right)
@@ -82,5 +81,5 @@ public partial struct PerKeySynchronizer
     public static bool operator !=(PerKeySynchronizer left, PerKeySynchronizer right)
         => !left.Equals(right);
     public override readonly int GetHashCode()
-        => EqualityComparer<SemaphoreSlim[]>.Default.GetHashCode(pool);
+        => pool.GetHashCode();
 }

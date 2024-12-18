@@ -21,9 +21,23 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
 {
     public PerKeySynchronizer() : this(null) { }
 
-    // I don't need all that record gives me, 
-    // i should change to struct and override just the equalities and not toStrings
-    private readonly record struct CountSemaphorePair(int Count, SemaphoreSlim Semaphore);
+    private readonly struct CountSemaphorePair(SemaphoreSlim semaphore, int count)
+        : IEquatable<CountSemaphorePair>
+    {
+        public readonly SemaphoreSlim Semaphore = semaphore;
+        public readonly int Count { get; init; } = count;
+
+        public readonly bool Equals(CountSemaphorePair other)
+            => ReferenceEquals(Semaphore, other.Semaphore) && Count == other.Count;
+        public override readonly bool Equals(object? obj)
+            => obj is CountSemaphorePair other && Equals(other);
+        public static bool operator ==(CountSemaphorePair left, CountSemaphorePair right)
+            => left.Equals(right);
+        public static bool operator !=(CountSemaphorePair left, CountSemaphorePair right)
+            => !left.Equals(right);
+        public override readonly int GetHashCode()
+            => HashCode.Combine(Semaphore, Count);
+    }
 
     private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
 
@@ -41,7 +55,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             }
             else
             {
-                var @new = new CountSemaphorePair(1, new SemaphoreSlim(1, 1));
+                var @new = new CountSemaphorePair(new SemaphoreSlim(1, 1), 1);
                 if (semaphores.TryAdd(key, @new))
                 {
                     return @new.Semaphore;
@@ -208,7 +222,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         => Synchronize(key, action, static (action, token) => action(token), cancellationToken);
 
     public readonly bool Equals(PerKeySynchronizer<TKey> other)
-        => EqualityComparer<ConcurrentDictionary<TKey, CountSemaphorePair>>.Default.Equals(semaphores, other.semaphores);
+        => ReferenceEquals(semaphores, other.semaphores);
     public override readonly bool Equals(object? obj)
         => obj is PerKeySynchronizer<TKey> other && Equals(other);
     public static bool operator ==(PerKeySynchronizer<TKey> left, PerKeySynchronizer<TKey> right)
@@ -216,5 +230,5 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     public static bool operator !=(PerKeySynchronizer<TKey> left, PerKeySynchronizer<TKey> right)
         => !left.Equals(right);
     public override readonly int GetHashCode()
-        => EqualityComparer<ConcurrentDictionary<TKey, CountSemaphorePair>>.Default.GetHashCode(semaphores);
+        => semaphores.GetHashCode();
 }
