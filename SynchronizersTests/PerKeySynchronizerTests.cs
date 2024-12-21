@@ -18,7 +18,7 @@ internal class PerKeySynchronizerTests
         var synchronizer = new PerKeySynchronizer(32);
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 new IntWrapper(1),
                 async _ =>
@@ -30,7 +30,7 @@ internal class PerKeySynchronizerTests
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 new IntWrapper(2),
                 async _ =>
@@ -59,7 +59,7 @@ internal class PerKeySynchronizerTests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 1,
                 async _ =>
@@ -71,7 +71,7 @@ internal class PerKeySynchronizerTests
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 2,
                 async _ =>
@@ -100,7 +100,7 @@ internal class PerKeySynchronizerTests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 1,
                 async _ =>
@@ -112,7 +112,7 @@ internal class PerKeySynchronizerTests
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 2,
                 async _ =>
@@ -142,7 +142,7 @@ internal class PerKeySynchronizerTests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 1,
                 async _ =>
@@ -153,10 +153,9 @@ internal class PerKeySynchronizerTests
                 },
                 cancellationToken);
         });
-        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken)
-            =>
+        var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 2,
                 async _ =>

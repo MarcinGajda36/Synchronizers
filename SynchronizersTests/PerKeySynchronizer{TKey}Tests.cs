@@ -20,7 +20,7 @@ internal class PerKeySynchronizer_TKey_Tests
 
         var firstSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 1,
                 async _ =>
@@ -32,7 +32,7 @@ internal class PerKeySynchronizer_TKey_Tests
         });
         var secondSumTask = Parallel.ForEachAsync(sumsToZero, async (number, cancellationToken) =>
         {
-            await Task.Delay(1, cancellationToken);
+            await Task.Yield();
             await synchronizer.SynchronizeAsync(
                 2,
                 async _ =>
