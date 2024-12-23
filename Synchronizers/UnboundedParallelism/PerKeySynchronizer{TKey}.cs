@@ -6,18 +6,18 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal readonly struct CountSemaphorePair(SemaphoreSlim semaphore, int count)
-    : IEquatable<CountSemaphorePair>
+internal readonly struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
+    : IEquatable<SemaphoreCountPair>
 {
     public readonly SemaphoreSlim Semaphore = semaphore;
     public readonly int Count = count;
 
-    public readonly bool Equals(CountSemaphorePair other)
-        => ReferenceEquals(Semaphore, other.Semaphore) && Count == other.Count;
+    public readonly bool Equals(SemaphoreCountPair other)
+        => Count == other.Count && ReferenceEquals(Semaphore, other.Semaphore);
     public override readonly bool Equals(object? obj)
-        => obj is CountSemaphorePair other && Equals(other);
+        => obj is SemaphoreCountPair other && Equals(other);
     public override readonly int GetHashCode()
-        => HashCode.Combine(Semaphore, Count);
+        => HashCode.Combine(Count, Semaphore);
 }
 
 /// <summary>
@@ -35,15 +35,15 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
 {
     public PerKeySynchronizer() : this(null) { }
 
-    private readonly ConcurrentDictionary<TKey, CountSemaphorePair> semaphores = new(equalityComparer);
+    private readonly ConcurrentDictionary<TKey, SemaphoreCountPair> semaphores = new(equalityComparer);
 
-    private static SemaphoreSlim GetOrCreate(ConcurrentDictionary<TKey, CountSemaphorePair> semaphores, TKey key)
+    private static SemaphoreSlim GetOrCreate(ConcurrentDictionary<TKey, SemaphoreCountPair> semaphores, TKey key)
     {
         while (true)
         {
             if (semaphores.TryGetValue(key, out var old))
             {
-                var incremented = new CountSemaphorePair(old.Semaphore, old.Count + 1);
+                var incremented = new SemaphoreCountPair(old.Semaphore, old.Count + 1);
                 if (semaphores.TryUpdate(key, incremented, old))
                 {
                     return old.Semaphore;
@@ -51,7 +51,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             }
             else
             {
-                var @new = new CountSemaphorePair(new SemaphoreSlim(1, 1), 1);
+                var @new = new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
                 if (semaphores.TryAdd(key, @new))
                 {
                     return @new.Semaphore;
@@ -64,7 +64,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    private static void Cleanup(ConcurrentDictionary<TKey, CountSemaphorePair> semaphores, TKey key)
+    private static void Cleanup(ConcurrentDictionary<TKey, SemaphoreCountPair> semaphores, TKey key)
     {
         while (true)
         {
@@ -80,7 +80,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
             }
             else
             {
-                var decremented = new CountSemaphorePair(old.Semaphore, old.Count - 1);
+                var decremented = new SemaphoreCountPair(old.Semaphore, old.Count - 1);
                 if (semaphores.TryUpdate(key, decremented, old))
                 {
                     return;
