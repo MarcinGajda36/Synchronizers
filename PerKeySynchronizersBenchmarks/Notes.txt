@@ -72,6 +72,13 @@
 | PerKeySynchronizer_TwoIntKeys        | 189.0 ms | 3.64 ms | 3.40 ms |    2 | 24500.0000 | 500.0000 | 144.97 MB |
 | PerKeySynchronizer_TwoIntWrapperKeys | 203.8 ms | 1.19 ms | 1.00 ms |    3 | 24333.3333 | 666.6667 | 144.97 MB |
 
+| Method                               | Mean     | Error   | StdDev  | Rank | Gen0       | Gen1     | Allocated |
+|------------------------------------- |---------:|--------:|--------:|-----:|-----------:|---------:|----------:|
+| PerKeySynchronizer_OneIntKeys        | 149.7 ms | 2.98 ms | 3.06 ms |    1 | 12250.0000 |        - |  72.48 MB |
+| PerKeySynchronizer_OneIntWrapperKeys | 146.4 ms | 2.78 ms | 3.09 ms |    1 | 12250.0000 |        - |  72.48 MB |
+| PerKeySynchronizer_TwoIntKeys        | 206.7 ms | 3.23 ms | 3.02 ms |    2 | 24333.3333 | 666.6667 | 144.97 MB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 216.4 ms | 2.90 ms | 2.72 ms |    3 | 24333.3333 | 666.6667 | 144.97 MB |
+
 // Removed
 // AggressiveOptimization
 | Method                               | Mean     | Error   | StdDev  | Rank | Gen0       | Gen1     | Allocated |
