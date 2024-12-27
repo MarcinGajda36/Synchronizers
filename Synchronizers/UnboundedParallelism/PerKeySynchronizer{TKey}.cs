@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
+internal struct SemaphoreCountPair(SemaphoreSlim semaphore, nint count)
 {
     public SemaphoreSlim Semaphore = semaphore;
-    public int Count = count;
+    public nint Count = count;
 }
 
 /// <summary>
