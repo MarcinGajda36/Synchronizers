@@ -47,6 +47,9 @@
 | PerKeySynchronizer_TwoIntKeys        | 1.807 ms | 0.0358 ms | 0.1023 ms |    2 | 246.0938 | 11.7188 | 1490.24 KB |
 | PerKeySynchronizer_TwoIntWrapperKeys | 1.827 ms | 0.0365 ms | 0.1012 ms |    2 | 246.0938 | 11.7188 | 1490.35 KB |
 
+
+
+// REVERTED
 // bool needsRelease
 | Method                               | Mean     | Error     | StdDev    | Rank | Gen0     | Gen1    | Allocated  |
 |------------------------------------- |---------:|----------:|----------:|-----:|---------:|--------:|-----------:|
@@ -61,3 +64,18 @@
 | PerKeySynchronizer_OneIntKeys        | 1.514 ms | 0.0303 ms | 0.0297 ms |    1 | 123.0469 |  1.9531 |   745.3 KB |
 | PerKeySynchronizer_TwoIntWrapperKeys | 1.822 ms | 0.0364 ms | 0.1028 ms |    2 | 246.0938 | 11.7188 | 1505.97 KB |
 | PerKeySynchronizer_TwoIntKeys        | 1.842 ms | 0.0368 ms | 0.1019 ms |    2 | 246.0938 | 11.7188 |  1490.3 KB |
+
+// nint count
+| Method                               | Mean     | Error     | StdDev    | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntKeys        | 1.495 ms | 0.0294 ms | 0.0289 ms |    1 | 123.0469 |  1.9531 |  745.33 KB |
+| PerKeySynchronizer_OneIntWrapperKeys | 1.515 ms | 0.0174 ms | 0.0154 ms |    1 | 123.0469 |  1.9531 |  745.38 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.798 ms | 0.0352 ms | 0.0889 ms |    2 | 246.0938 | 11.7188 | 1490.27 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.835 ms | 0.0400 ms | 0.1178 ms |    2 | 246.0938 | 11.7188 | 1490.32 KB |
+
+| Method                               | Mean     | Error     | StdDev    | Median   | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|---------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntKeys        | 1.516 ms | 0.0290 ms | 0.0323 ms | 1.510 ms |    1 | 123.0469 |  1.9531 |  745.33 KB |
+| PerKeySynchronizer_OneIntWrapperKeys | 1.553 ms | 0.0309 ms | 0.0402 ms | 1.546 ms |    1 | 123.0469 |  1.9531 |  745.39 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.840 ms | 0.0358 ms | 0.0546 ms | 1.867 ms |    2 | 246.0938 | 11.7188 | 1490.26 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.847 ms | 0.0386 ms | 0.1140 ms | 1.855 ms |    2 | 246.0938 | 11.7188 | 1490.36 KB |
