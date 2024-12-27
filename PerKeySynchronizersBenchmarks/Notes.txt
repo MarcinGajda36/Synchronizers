@@ -54,6 +54,13 @@
 | PerKeySynchronizer_TwoIntKeys        | 1.820 ms | 0.0372 ms | 0.1091 ms |    2 | 246.0938 | 11.7188 | 1490.32 KB |
 | PerKeySynchronizer_TwoIntWrapperKeys | 1.903 ms | 0.0455 ms | 0.1342 ms |    2 | 246.0938 | 11.7188 | 1490.32 KB |
 
+// GetOrCreate + AggressiveOptimization
+| Method                               | Mean     | Error     | StdDev    | Median   | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|---------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntKeys        | 1.545 ms | 0.0303 ms | 0.0415 ms | 1.539 ms |    2 | 123.0469 |  1.9531 |  745.32 KB |
+| PerKeySynchronizer_OneIntWrapperKeys | 1.423 ms | 0.0280 ms | 0.0248 ms | 1.410 ms |    1 | 123.0469 |  1.9531 |  745.37 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.795 ms | 0.0358 ms | 0.0771 ms | 1.816 ms |    3 | 246.0938 | 11.7188 |  1490.3 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.877 ms | 0.0372 ms | 0.0919 ms | 1.908 ms |    3 | 246.0938 | 11.7188 | 1490.32 KB |
 
 // REVERTED
 // bool needsRelease
