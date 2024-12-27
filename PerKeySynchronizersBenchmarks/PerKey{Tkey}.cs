@@ -1,12 +1,10 @@
 ﻿namespace PerKeySynchronizersBenchmarks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Order;
 using PerKeySynchronizers.UnboundedParallelism;
 
 [RankColumn]
 [MemoryDiagnoser]
-[Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class PerKeyTkey
 {
     private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001).ToArray();
