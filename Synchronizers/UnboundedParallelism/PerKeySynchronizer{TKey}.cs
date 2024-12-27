@@ -15,7 +15,7 @@ internal struct SemaphoreCountPair(SemaphoreSlim semaphore, nint count)
 /// <summary>
 /// Synchronizes operations so all operation on given key happen one at a time, 
 /// while allowing operations for different keys to happen in parallel.
-/// Uses ConcurrentDictionary<TKey, ...> to grab semaphore for given key.
+/// Uses Dictionary<TKey, ...> inside lock to grab semaphore for given key.
 /// </summary>
 /// <typeparam name="TKey"></typeparam>
 /// <param name="equalityComparer">
