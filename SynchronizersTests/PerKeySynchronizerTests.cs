@@ -7,7 +7,7 @@ using PerKeySynchronizers.BoundedParallelism;
 
 internal class PerKeySynchronizerTests
 {
-    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-250, 501).ToArray();
+    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001).ToArray();
 
     [Test]
     public async Task PerKeySynchronizer_Size32_CustomObject()
