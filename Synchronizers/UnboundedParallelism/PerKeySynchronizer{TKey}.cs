@@ -7,17 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
-    : IEquatable<SemaphoreCountPair>
 {
     public readonly SemaphoreSlim Semaphore = semaphore;
     public int Count = count;
-
-    public readonly bool Equals(SemaphoreCountPair other)
-        => Count == other.Count && ReferenceEquals(Semaphore, other.Semaphore);
-    public override readonly bool Equals(object? obj)
-        => obj is SemaphoreCountPair other && Equals(other);
-    public override readonly int GetHashCode()
-        => HashCode.Combine(Count, Semaphore);
 }
 
 /// <summary>
