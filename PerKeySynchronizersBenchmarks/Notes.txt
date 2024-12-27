@@ -1,0 +1,32 @@
+
+
+// Starting point while(true) { ConcurrentDictionary }
+
+| Method                               | Mean     | Error     | StdDev    | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntKeys        | 1.431 ms | 0.0193 ms | 0.0161 ms |    1 | 136.7188 |  3.9063 |  839.54 KB |
+| PerKeySynchronizer_OneIntWrapperKeys | 1.509 ms | 0.0285 ms | 0.0328 ms |    1 | 140.6250 |  3.9063 |  855.23 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.816 ms | 0.0360 ms | 0.0999 ms |    2 | 281.2500 | 11.7188 | 1709.54 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.834 ms | 0.0380 ms | 0.1119 ms |    2 | 273.4375 | 11.7188 | 1678.18 KB |
+
+| Method                               | Mean     | Error     | StdDev    | Median   | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|---------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntWrapperKeys | 1.504 ms | 0.0240 ms | 0.0224 ms | 1.503 ms |    1 | 140.6250 |  3.9063 |  855.19 KB |
+| PerKeySynchronizer_OneIntKeys        | 1.530 ms | 0.0299 ms | 0.0280 ms | 1.532 ms |    1 | 138.6719 |  3.9063 |  839.52 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.725 ms | 0.0343 ms | 0.0928 ms | 1.754 ms |    2 | 281.2500 | 11.7188 |  1709.6 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.944 ms | 0.0385 ms | 0.1081 ms | 1.983 ms |    3 | 273.4375 | 11.7188 | 1678.26 KB |
+
+// lock(Dictionary)
+| Method                               | Mean     | Error     | StdDev    | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntWrapperKeys | 1.479 ms | 0.0237 ms | 0.0222 ms |    1 | 123.0469 |  1.9531 |  745.35 KB |
+| PerKeySynchronizer_OneIntKeys        | 1.498 ms | 0.0286 ms | 0.0267 ms |    1 | 123.0469 |  1.9531 |  745.32 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.825 ms | 0.0410 ms | 0.1208 ms |    2 | 246.0938 | 11.7188 | 1490.26 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.839 ms | 0.0444 ms | 0.1308 ms |    2 | 246.0938 | 11.7188 | 1490.39 KB |
+
+| Method                               | Mean     | Error     | StdDev    | Rank | Gen0     | Gen1    | Allocated  |
+|------------------------------------- |---------:|----------:|----------:|-----:|---------:|--------:|-----------:|
+| PerKeySynchronizer_OneIntWrapperKeys | 1.483 ms | 0.0237 ms | 0.0222 ms |    1 | 123.0469 |  1.9531 |   745.4 KB |
+| PerKeySynchronizer_OneIntKeys        | 1.504 ms | 0.0198 ms | 0.0175 ms |    1 | 123.0469 |  1.9531 |  745.31 KB |
+| PerKeySynchronizer_TwoIntKeys        | 1.845 ms | 0.0369 ms | 0.1040 ms |    2 | 246.0938 | 11.7188 | 1490.34 KB |
+| PerKeySynchronizer_TwoIntWrapperKeys | 1.853 ms | 0.0365 ms | 0.0854 ms |    2 | 246.0938 | 11.7188 | 1490.36 KB |

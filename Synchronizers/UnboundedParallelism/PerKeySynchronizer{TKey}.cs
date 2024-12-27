@@ -1,16 +1,16 @@
 ﻿namespace PerKeySynchronizers.UnboundedParallelism;
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal readonly struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
+internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
     : IEquatable<SemaphoreCountPair>
 {
     public readonly SemaphoreSlim Semaphore = semaphore;
-    public readonly int Count = count;
+    public int Count = count;
 
     public readonly bool Equals(SemaphoreCountPair other)
         => Count == other.Count && ReferenceEquals(Semaphore, other.Semaphore);
@@ -35,56 +35,40 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
 {
     public PerKeySynchronizer() : this(null) { }
 
-    private readonly ConcurrentDictionary<TKey, SemaphoreCountPair> semaphores = new(equalityComparer);
+    private readonly Dictionary<TKey, SemaphoreCountPair> semaphores = new(equalityComparer);
 
-    private static SemaphoreSlim GetOrCreate(ConcurrentDictionary<TKey, SemaphoreCountPair> semaphores, TKey key)
+    private static SemaphoreSlim GetOrCreate(Dictionary<TKey, SemaphoreCountPair> semaphores, TKey key)
     {
-        while (true)
+        lock (semaphores)
         {
-            if (semaphores.TryGetValue(key, out var old))
+            ref var old = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
+            if (exists)
             {
-                var incremented = new SemaphoreCountPair(old.Semaphore, old.Count + 1);
-                if (semaphores.TryUpdate(key, incremented, old))
-                {
-                    return old.Semaphore;
-                }
+                ++old.Count;
+                return old.Semaphore;
             }
             else
             {
-                var @new = new SemaphoreCountPair(new SemaphoreSlim(1, 1), 1);
-                if (semaphores.TryAdd(key, @new))
-                {
-                    return @new.Semaphore;
-                }
-                else
-                {
-                    @new.Semaphore.Dispose();
-                }
+                var semaphore = new SemaphoreSlim(1, 1);
+                old = new SemaphoreCountPair(semaphore, 1);
+                return semaphore;
             }
         }
     }
 
-    private static void Cleanup(ConcurrentDictionary<TKey, SemaphoreCountPair> semaphores, TKey key)
+    private static void Cleanup(Dictionary<TKey, SemaphoreCountPair> semaphores, TKey key)
     {
-        while (true)
+        lock (semaphores)
         {
-            var old = semaphores[key];
+            ref var old = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
             if (old.Count == 1)
             {
-                var toRemove = KeyValuePair.Create(key, old);
-                if (semaphores.TryRemove(toRemove))
-                {
-                    old.Semaphore.Dispose();
-                    return;
-                }
+                old.Semaphore.Dispose();
+                _ = semaphores.Remove(key);
             }
             else
             {
-                var decremented = new SemaphoreCountPair(old.Semaphore, old.Count - 1);
-                if (semaphores.TryUpdate(key, decremented, old))
-                {
-                    return;
-                }
+                --old.Count;
             }
         }
     }
