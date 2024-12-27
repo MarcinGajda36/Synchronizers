@@ -7,7 +7,7 @@ using PerKeySynchronizers.UnboundedParallelism;
 [MemoryDiagnoser]
 public class PerKeyTkey
 {
-    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001).ToArray();
+    private static readonly int[] sumsToZero = Enumerable.Range(-50_000, 100_001).ToArray();
 
     [Benchmark]
     public async Task PerKeySynchronizer_OneIntKeys()

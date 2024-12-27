@@ -8,7 +8,7 @@ using PerKeySynchronizers.UnboundedParallelism;
 
 internal class PerKeySynchronizer_TKey_Tests
 {
-    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-500, 1001).ToArray();
+    private static readonly IEnumerable<int> sumsToZero = Enumerable.Range(-50_000, 100_001).ToArray();
 
     [Test]
     public async Task PerKeySynchronizer_TwoKeys()
