@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal struct SemaphoreCountPair(SemaphoreSlim semaphore, nint count)
+internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
 {
     public SemaphoreSlim Semaphore = semaphore;
-    public nint Count = count;
+    public int Count = count;
 }
 
 /// <summary>
@@ -33,7 +33,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     {
         lock (semaphores)
         {
-            ref var old = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out var exists);
+            ref var old = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out _);
             ++old.Count;
             var semaphore = old.Semaphore ??= new SemaphoreSlim(1, 1);
             return semaphore;
@@ -45,7 +45,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         lock (semaphores)
         {
             ref var old = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
-            if ((--old.Count) == 0)
+            if (--old.Count == 0)
             {
                 old.Semaphore.Dispose();
                 _ = semaphores.Remove(key);
