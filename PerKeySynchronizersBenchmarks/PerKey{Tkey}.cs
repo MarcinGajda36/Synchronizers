@@ -13,7 +13,14 @@ public class PerKeyTkey
     public async Task PerKeySynchronizer_OneIntKeys()
     {
         var synchronizer = new PerKeySynchronizer<int>();
-        await PerKeySynchronizer_OneKeys(1, synchronizer, sumsToZero);
+        await PerKeySynchronizerWork([1], synchronizer, sumsToZero);
+    }
+
+    [Benchmark]
+    public async Task PerKeySynchronizer_OneGuidKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<Guid>();
+        await PerKeySynchronizerWork([new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)], synchronizer, sumsToZero);
     }
 
     [Benchmark]
@@ -21,37 +28,24 @@ public class PerKeyTkey
     {
         var firstKey = new IntWrapper(1);
         var synchronizer = new PerKeySynchronizer<IntWrapper>();
-        await PerKeySynchronizer_OneKeys(firstKey, synchronizer, sumsToZero);
-    }
-
-    public static async Task PerKeySynchronizer_OneKeys<TSynchronizer, TKey>(
-        TKey key,
-        TSynchronizer synchronizer,
-        IEnumerable<int> source)
-        where TSynchronizer : IPerKeySynchronizer<TKey>
-        where TKey : notnull
-    {
-        var firstSum = 0;
-        await Parallel.ForEachAsync(source, async (number, cancellationToken) =>
-        {
-            await Task.Yield();
-            await synchronizer.SynchronizeAsync(
-                key,
-                number,
-                async (number, _) =>
-                {
-                    await Task.Yield();
-                    firstSum += number;
-                },
-                cancellationToken);
-        });
+        await PerKeySynchronizerWork([firstKey], synchronizer, sumsToZero);
     }
 
     [Benchmark]
     public async Task PerKeySynchronizer_TwoIntKeys()
     {
         var synchronizer = new PerKeySynchronizer<int>();
-        await PerKeySynchronizer_TwoKeys(1, 2, synchronizer, sumsToZero);
+        await PerKeySynchronizerWork([1, 2], synchronizer, sumsToZero);
+    }
+
+    [Benchmark]
+    public async Task PerKeySynchronizer_TwoGuidKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<Guid>();
+        await PerKeySynchronizerWork(
+            [new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)],
+            synchronizer,
+            sumsToZero);
     }
 
     [Benchmark]
@@ -60,46 +54,67 @@ public class PerKeyTkey
         var firstKey = new IntWrapper(1);
         var secondKey = new IntWrapper(2);
         var synchronizer = new PerKeySynchronizer<IntWrapper>();
-        await PerKeySynchronizer_TwoKeys(firstKey, secondKey, synchronizer, sumsToZero);
+        await PerKeySynchronizerWork([firstKey, secondKey], synchronizer, sumsToZero);
     }
 
-    public static async Task PerKeySynchronizer_TwoKeys<TSynchronizer, TKey>(
-        TKey firstKey,
-        TKey secondKey,
+    [Benchmark]
+    public async Task PerKeySynchronizer_FourIntKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<int>();
+        await PerKeySynchronizerWork([1, 2, 3, 4], synchronizer, sumsToZero);
+    }
+
+    [Benchmark]
+    public async Task PerKeySynchronizer_FourGuidKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<Guid>();
+        await PerKeySynchronizerWork(
+            [
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4)
+            ],
+            synchronizer,
+            sumsToZero);
+    }
+
+    [Benchmark]
+    public async Task PerKeySynchronizer_FourIntWrapperKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<IntWrapper>();
+        await PerKeySynchronizerWork(
+            [new IntWrapper(1), new IntWrapper(2), new IntWrapper(3), new IntWrapper(4)],
+            synchronizer,
+            sumsToZero);
+    }
+
+    public static async Task PerKeySynchronizerWork<TSynchronizer, TKey>(
+        TKey[] keys,
         TSynchronizer synchronizer,
         IEnumerable<int> source)
         where TSynchronizer : IPerKeySynchronizer<TKey>
         where TKey : notnull
     {
-        var firstSum = 0;
-        var secondSum = 0;
-
-        var firstSumTask = Parallel.ForEachAsync(source, async (number, cancellationToken) =>
+        var tasks = new Task[keys.Length];
+        for (var i = 0; i < keys.Length; ++i)
         {
-            await Task.Yield();
-            await synchronizer.SynchronizeAsync(
-                firstKey,
-                number,
-                async (number, _) =>
-                {
-                    await Task.Yield();
-                    firstSum += number;
-                },
-                cancellationToken);
-        });
-        var secondSumTask = Parallel.ForEachAsync(source, async (number, cancellationToken) =>
-        {
-            await Task.Yield();
-            await synchronizer.SynchronizeAsync(
-                secondKey,
-                number,
-                async (number, _) =>
-                {
-                    await Task.Yield();
-                    secondSum += number;
-                },
-                cancellationToken);
-        });
-        await Task.WhenAll(firstSumTask, secondSumTask);
+            var key = keys[i];
+            var sum = 0;
+            tasks[i] = Parallel.ForEachAsync(source, async (number, cancellationToken) =>
+            {
+                await Task.Yield();
+                await synchronizer.SynchronizeAsync(
+                    key,
+                    number,
+                    async (number, _) =>
+                    {
+                        await Task.Yield();
+                        sum += number;
+                    },
+                    cancellationToken);
+            });
+        }
+        await Task.WhenAll(tasks);
     }
 }
