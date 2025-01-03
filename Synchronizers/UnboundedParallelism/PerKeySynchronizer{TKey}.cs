@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
 {
-    public SemaphoreSlim Semaphore = semaphore;
     public int Count = count;
+    public SemaphoreSlim Semaphore = semaphore;
 }
 
 /// <summary>
@@ -33,10 +33,9 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     {
         lock (semaphores)
         {
-            ref var old = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out _);
-            ++old.Count;
-            var semaphore = old.Semaphore ??= new SemaphoreSlim(1, 1);
-            return semaphore;
+            ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(semaphores, key, out _);
+            ++pair.Count;
+            return pair.Semaphore ??= new SemaphoreSlim(1, 1);
         }
     }
 
@@ -44,10 +43,10 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     {
         lock (semaphores)
         {
-            ref var old = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
-            if (--old.Count == 0)
+            ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
+            if (--pair.Count == 0)
             {
-                old.Semaphore.Dispose();
+                pair.Semaphore.Dispose();
                 _ = semaphores.Remove(key);
             }
         }

@@ -18,6 +18,10 @@ public partial struct PerKeySynchronizer
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
     {
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        return Core(pool_, argument, resultFactory, cancellationToken);
+
         static async ValueTask<TResult> Core(
             SemaphoreSlim[] pool,
             TArgument argument,
@@ -46,10 +50,6 @@ public partial struct PerKeySynchronizer
                 ReleaseAll(pool, pool.Length - 1);
             }
         }
-
-        var pool_ = pool;
-        ValidateDispose(pool_);
-        return Core(pool_, argument, resultFactory, cancellationToken);
     }
 
     public readonly ValueTask SynchronizeAllAsync<TArgument>(
@@ -57,6 +57,10 @@ public partial struct PerKeySynchronizer
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
     {
+        var pool_ = pool;
+        ValidateDispose(pool_);
+        return Core(pool_, argument, func, cancellationToken);
+
         static async ValueTask Core(
             SemaphoreSlim[] pool,
             TArgument argument,
@@ -85,10 +89,6 @@ public partial struct PerKeySynchronizer
                 ReleaseAll(pool, pool.Length - 1);
             }
         }
-
-        var pool_ = pool;
-        ValidateDispose(pool_);
-        return Core(pool_, argument, func, cancellationToken);
     }
 
     public readonly ValueTask<TResult> SynchronizeAllAsync<TResult>(

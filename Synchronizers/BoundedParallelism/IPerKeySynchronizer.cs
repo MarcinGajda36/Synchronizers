@@ -129,21 +129,21 @@ public interface IPerKeySynchronizer
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
-    public TResult SynchronizeAll<TArgument, TResult>(
+    TResult SynchronizeAll<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default);
 
-    public void SynchronizeAll<TArgument>(
+    void SynchronizeAll<TArgument>(
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default);
 
-    public TResult SynchronizeAll<TResult>(
+    TResult SynchronizeAll<TResult>(
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default);
 
-    public void SynchronizeAll(
+    void SynchronizeAll(
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default);
 }
