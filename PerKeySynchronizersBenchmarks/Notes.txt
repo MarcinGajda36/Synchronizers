@@ -43,6 +43,22 @@
 | PerKeySynchronizer_FourIntWrapperKeys | 243.4 ms | 4.86 ms | 9.01 ms |    4 | 48000.0000 | 3000.0000 | 289.95 MB |
 
 // ConcurrentDictionary
+
+| Method                                   | Mean       | Error    | StdDev   | Rank | Gen0        | Gen1       | Allocated  |
+|----------------------------------------- |-----------:|---------:|---------:|-----:|------------:|-----------:|-----------:|
+| PerKeySynchronizer_OneIntKeys            |   151.4 ms |  3.46 ms | 10.19 ms |    1 |  20666.6667 |          - |  123.47 MB |
+| PerKeySynchronizer_OneGuidKeys           |   151.5 ms |  4.33 ms | 12.56 ms |    1 |  18500.0000 |          - |  110.47 MB |
+| PerKeySynchronizer_OneIntWrapperKeys     |   150.2 ms |  3.14 ms |  9.25 ms |    1 |  20750.0000 |   250.0000 |  123.92 MB |
+| PerKeySynchronizer_TwoIntKeys            |   173.5 ms |  3.26 ms |  2.89 ms |    2 |  43500.0000 |  1000.0000 |  260.14 MB |
+| PerKeySynchronizer_TwoGuidKeys           |   176.3 ms |  2.84 ms |  2.52 ms |    2 |  45000.0000 |  1000.0000 |   269.1 MB |
+| PerKeySynchronizer_TwoIntWrapperKeys     |   186.7 ms |  3.73 ms |  6.34 ms |    2 |  43000.0000 |  1000.0000 |  255.02 MB |
+| PerKeySynchronizer_FourIntKeys           |   273.6 ms |  5.00 ms |  4.43 ms |    3 |  81000.0000 |  5000.0000 |  483.11 MB |
+| PerKeySynchronizer_FourGuidKeys          |   270.5 ms |  5.38 ms | 11.80 ms |    3 |  83000.0000 |  5000.0000 |  497.83 MB |
+| PerKeySynchronizer_FourIntWrapperKeys    |   273.0 ms |  4.90 ms |  4.59 ms |    3 |  82000.0000 |  5000.0000 |  487.96 MB |
+| PerKeySynchronizer_SixteenIntKeys        |   915.2 ms | 17.86 ms | 17.54 ms |    4 | 288000.0000 | 63000.0000 | 1712.36 MB |
+| PerKeySynchronizer_SixteenGuidKeys       |   991.3 ms | 19.74 ms | 31.32 ms |    5 | 315000.0000 | 78000.0000 | 1873.67 MB |
+| PerKeySynchronizer_SixteenIntWrapperKeys | 1,016.4 ms | 19.63 ms | 23.37 ms |    5 | 313000.0000 | 77000.0000 | 1864.14 MB |
+
 | Method                                | Mean     | Error   | StdDev   | Rank | Gen0       | Gen1      | Allocated |
 |-------------------------------------- |---------:|--------:|---------:|-----:|-----------:|----------:|----------:|
 | PerKeySynchronizer_OneIntKeys         | 150.6 ms | 2.92 ms |  3.25 ms |    1 | 13666.6667 |         - |  81.64 MB |
