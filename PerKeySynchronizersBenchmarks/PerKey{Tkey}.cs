@@ -89,6 +89,70 @@ public class PerKeyTkey
             sumsToZero);
     }
 
+    [Benchmark]
+    public async Task PerKeySynchronizer_SixteenIntKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<int>();
+        await PerKeySynchronizerWork(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+            synchronizer,
+            sumsToZero);
+    }
+
+    [Benchmark]
+    public async Task PerKeySynchronizer_SixteenGuidKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<Guid>();
+        await PerKeySynchronizerWork(
+            [
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6),
+                new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7),
+            ],
+            synchronizer,
+            sumsToZero);
+    }
+
+    [Benchmark]
+    public async Task PerKeySynchronizer_SixteenIntWrapperKeys()
+    {
+        var synchronizer = new PerKeySynchronizer<IntWrapper>();
+        await PerKeySynchronizerWork(
+            [
+                new IntWrapper(1),
+                new IntWrapper(2),
+                new IntWrapper(3),
+                new IntWrapper(4),
+                new IntWrapper(5),
+                new IntWrapper(6),
+                new IntWrapper(7),
+                new IntWrapper(8),
+                new IntWrapper(9),
+                new IntWrapper(10),
+                new IntWrapper(11),
+                new IntWrapper(12),
+                new IntWrapper(13),
+                new IntWrapper(14),
+                new IntWrapper(15),
+                new IntWrapper(16),
+            ],
+            synchronizer,
+            sumsToZero);
+    }
+
     public static async Task PerKeySynchronizerWork<TSynchronizer, TKey>(
         TKey[] keys,
         TSynchronizer synchronizer,
