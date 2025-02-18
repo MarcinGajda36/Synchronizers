@@ -198,5 +198,4 @@ internal class PerKeySynchronizer_TKey_Tests
             Assert.That(isFunctionExecuted, Is.False);
         });
     }
-
 }

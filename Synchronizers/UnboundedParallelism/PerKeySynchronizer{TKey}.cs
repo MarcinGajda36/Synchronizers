@@ -44,7 +44,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         lock (semaphores)
         {
             ref var pair = ref CollectionsMarshal.GetValueRefOrNullRef(semaphores, key);
-            if (--pair.Count == 0)
+            if (--pair.Count is 0)
             {
                 pair.Semaphore.Dispose();
                 _ = semaphores.Remove(key);
@@ -52,7 +52,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
-    public async readonly ValueTask<TResult> SynchronizeAsync<TArgument, TResult>(
+    public async ValueTask<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,

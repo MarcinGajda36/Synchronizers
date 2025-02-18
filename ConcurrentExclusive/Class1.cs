@@ -1,4 +1,4 @@
-﻿namespace ConcurrentExclusive;
+﻿namespace ConcurrentExclusiveSynchronizers;
 
 public class Class1
 {
