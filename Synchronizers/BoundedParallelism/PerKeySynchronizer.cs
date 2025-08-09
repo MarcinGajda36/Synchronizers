@@ -65,12 +65,7 @@ public partial struct PerKeySynchronizer
     }
 
     private static void ValidateDispose(SemaphoreSlim[]? pool)
-    {
-        if (pool == null)
-        {
-            throw new ObjectDisposedException(typeof(PerKeySynchronizer).FullName);
-        }
-    }
+        => ObjectDisposedException.ThrowIf(pool == null, typeof(PerKeySynchronizer));
 
     public readonly bool Equals(PerKeySynchronizer other)
         => ReferenceEquals(pool, other.pool);
