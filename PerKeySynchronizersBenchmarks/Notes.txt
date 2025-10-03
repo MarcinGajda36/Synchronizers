@@ -3,6 +3,57 @@
 
 // Dictionary
 
+//03.10.2025
+
+// var semaphore = GetOrCreate(key);
+| Method                                   | Mean     | Error    | StdDev   | Median   | Rank | Gen0        | Gen1       | Allocated  |
+|----------------------------------------- |---------:|---------:|---------:|---------:|-----:|------------:|-----------:|-----------:|
+| PerKeySynchronizer_OneIntKeys            | 151.1 ms |  2.97 ms |  3.54 ms | 151.5 ms |    1 |  12000.0000 |          - |   71.72 MB |
+| PerKeySynchronizer_OneGuidKeys           | 144.4 ms |  2.86 ms |  2.81 ms | 143.7 ms |    1 |  12250.0000 |          - |   72.48 MB |
+| PerKeySynchronizer_OneIntWrapperKeys     | 148.1 ms |  2.95 ms |  3.63 ms | 149.0 ms |    1 |  12000.0000 |          - |   71.72 MB |
+| PerKeySynchronizer_TwoIntKeys            | 184.2 ms |  1.56 ms |  1.38 ms | 184.0 ms |    2 |  24000.0000 |   666.6667 |  143.44 MB |
+| PerKeySynchronizer_TwoGuidKeys           | 202.2 ms |  4.03 ms | 10.33 ms | 206.0 ms |    3 |  24333.3333 |   666.6667 |  144.97 MB |
+| PerKeySynchronizer_TwoIntWrapperKeys     | 194.7 ms |  3.85 ms |  8.46 ms | 197.6 ms |    3 |  24000.0000 |   500.0000 |  143.44 MB |
+| PerKeySynchronizer_FourIntKeys           | 218.4 ms |  3.64 ms |  3.41 ms | 218.4 ms |    4 |  48000.0000 |  3000.0000 |   286.9 MB |
+| PerKeySynchronizer_FourGuidKeys          | 220.8 ms |  4.50 ms | 13.12 ms | 222.6 ms |    4 |  48500.0000 |  3000.0000 |  289.94 MB |
+| PerKeySynchronizer_FourIntWrapperKeys    | 230.9 ms |  4.46 ms |  4.38 ms | 229.9 ms |    4 |  48333.3333 |  3000.0000 |  286.89 MB |
+| PerKeySynchronizer_SixteenIntKeys        | 703.8 ms | 10.63 ms |  9.43 ms | 703.8 ms |    5 | 181000.0000 | 36000.0000 | 1075.79 MB |
+| PerKeySynchronizer_SixteenGuidKeys       | 831.3 ms | 16.42 ms | 45.24 ms | 837.0 ms |    7 | 195000.0000 | 48000.0000 | 1159.71 MB |
+| PerKeySynchronizer_SixteenIntWrapperKeys | 743.0 ms | 10.00 ms | 14.66 ms | 740.0 ms |    6 | 193000.0000 | 47000.0000 |  1147.5 MB |
+
+// var self = this;
+// var semaphore = self.GetOrCreate(key);
+| Method                                   | Mean     | Error    | StdDev   | Rank | Gen0        | Gen1       | Allocated  |
+|----------------------------------------- |---------:|---------:|---------:|-----:|------------:|-----------:|-----------:|
+| PerKeySynchronizer_OneIntKeys            | 147.2 ms |  2.76 ms |  2.45 ms |    1 |  12250.0000 |          - |   72.48 MB |
+| PerKeySynchronizer_OneGuidKeys           | 149.1 ms |  2.81 ms |  2.62 ms |    1 |  12250.0000 |          - |   73.24 MB |
+| PerKeySynchronizer_OneIntWrapperKeys     | 152.3 ms |  3.02 ms |  4.87 ms |    1 |  12250.0000 |          - |   72.48 MB |
+| PerKeySynchronizer_TwoIntKeys            | 202.3 ms |  1.23 ms |  1.03 ms |    3 |  24333.3333 |   666.6667 |  144.97 MB |
+| PerKeySynchronizer_TwoGuidKeys           | 194.4 ms |  2.00 ms |  1.87 ms |    2 |  24666.6667 |   666.6667 |  146.49 MB |
+| PerKeySynchronizer_TwoIntWrapperKeys     | 189.7 ms |  3.68 ms |  5.51 ms |    2 |  24333.3333 |   666.6667 |  144.97 MB |
+| PerKeySynchronizer_FourIntKeys           | 231.3 ms |  4.59 ms |  9.69 ms |    4 |  48666.6667 |  3000.0000 |  289.96 MB |
+| PerKeySynchronizer_FourGuidKeys          | 219.8 ms |  4.29 ms |  5.72 ms |    4 |  49000.0000 |  3000.0000 |     293 MB |
+| PerKeySynchronizer_FourIntWrapperKeys    | 241.6 ms |  4.82 ms | 10.89 ms |    5 |  48500.0000 |  3000.0000 |  289.94 MB |
+| PerKeySynchronizer_SixteenIntKeys        | 684.8 ms |  9.44 ms |  7.37 ms |    6 | 183000.0000 | 38000.0000 | 1087.23 MB |
+| PerKeySynchronizer_SixteenGuidKeys       | 729.7 ms | 12.58 ms |  9.82 ms |    7 | 197000.0000 | 49000.0000 | 1171.92 MB |
+| PerKeySynchronizer_SixteenIntWrapperKeys | 769.5 ms | 15.29 ms | 22.42 ms |    7 | 195000.0000 | 48000.0000 | 1159.71 MB |
+
+//Before any changes:
+| Method                                   | Mean     | Error    | StdDev   | Rank | Gen0        | Gen1       | Allocated  |
+|----------------------------------------- |---------:|---------:|---------:|-----:|------------:|-----------:|-----------:|
+| PerKeySynchronizer_OneIntKeys            | 146.6 ms |  2.86 ms |  3.06 ms |    1 |  12250.0000 |          - |   72.48 MB |
+| PerKeySynchronizer_OneGuidKeys           | 144.1 ms |  2.82 ms |  2.36 ms |    1 |  12250.0000 |          - |   73.25 MB |
+| PerKeySynchronizer_OneIntWrapperKeys     | 150.0 ms |  2.40 ms |  2.00 ms |    1 |  12250.0000 |          - |   72.48 MB |
+| PerKeySynchronizer_TwoIntKeys            | 190.0 ms |  3.80 ms |  4.06 ms |    2 |  24500.0000 |   500.0000 |  144.97 MB |
+| PerKeySynchronizer_TwoGuidKeys           | 198.0 ms |  3.88 ms |  3.63 ms |    2 |  24500.0000 |   500.0000 |  146.49 MB |
+| PerKeySynchronizer_TwoIntWrapperKeys     | 196.4 ms |  3.88 ms |  4.91 ms |    2 |  24333.3333 |   666.6667 |  144.97 MB |
+| PerKeySynchronizer_FourIntKeys           | 216.5 ms |  4.30 ms |  8.39 ms |    3 |  48500.0000 |  3000.0000 |  289.95 MB |
+| PerKeySynchronizer_FourGuidKeys          | 221.2 ms |  3.28 ms |  3.07 ms |    3 |  49000.0000 |  3000.0000 |  293.01 MB |
+| PerKeySynchronizer_FourIntWrapperKeys    | 242.7 ms |  3.88 ms |  3.63 ms |    4 |  48500.0000 |  3000.0000 |  289.95 MB |
+| PerKeySynchronizer_SixteenIntKeys        | 684.5 ms |  9.44 ms |  8.36 ms |    5 | 183000.0000 | 38000.0000 | 1087.23 MB |
+| PerKeySynchronizer_SixteenGuidKeys       | 810.8 ms | 15.97 ms | 19.62 ms |    6 | 197000.0000 | 48000.0000 | 1171.92 MB |
+| PerKeySynchronizer_SixteenIntWrapperKeys | 796.8 ms | 15.90 ms | 44.06 ms |    6 | 195000.0000 | 48000.0000 | 1159.71 MB |
+
 // 08.08.2025
 | Method                                   | Mean     | Error    | StdDev   | Rank | Gen0        | Gen1       | Allocated  |
 |----------------------------------------- |---------:|---------:|---------:|-----:|------------:|-----------:|-----------:|
