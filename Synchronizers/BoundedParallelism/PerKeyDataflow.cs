@@ -59,29 +59,29 @@ public sealed class PerKeyDataflow<TMessage>
         await Task.WhenAll([first, .. flowsCompletion]);
     }
 
-    public ArgumentOutOfRangeException? ValidateKey(int flowKey)
-        => flowKey < 0 || flowKey >= FlowsCount
-            ? new(nameof(flowKey), $"Key has to be between 0 inclusive and {FlowsCount} exclusive.")
+    public ArgumentOutOfRangeException? ValidateKey(int flowIndex)
+        => flowIndex < 0 || flowIndex >= FlowsCount
+            ? new(nameof(flowIndex), $"Key index to be between 0 inclusive and {FlowsCount} exclusive.")
             : null;
 
-    public bool Enqueue<TKey>(int flowKey, TMessage toEnqueue)
+    public bool Enqueue<TKey>(int flowIndex, TMessage toEnqueue)
         where TKey : notnull
     {
-        if (ValidateKey(flowKey) is { } exception)
+        if (ValidateKey(flowIndex) is { } exception)
         {
             throw exception;
         }
-        return flows[flowKey].Post(toEnqueue);
+        return flows[flowIndex].Post(toEnqueue);
     }
 
-    public Task<bool> EnqueueAsync<TKey>(int flowKey, TMessage toEnqueue, CancellationToken cancellationToken = default)
+    public Task<bool> EnqueueAsync<TKey>(int flowIndex, TMessage toEnqueue, CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        if (ValidateKey(flowKey) is { } exception)
+        if (ValidateKey(flowIndex) is { } exception)
         {
             throw exception;
         }
-        return flows[flowKey].SendAsync(toEnqueue, cancellationToken);
+        return flows[flowIndex].SendAsync(toEnqueue, cancellationToken);
     }
 
     public void Dispose()
