@@ -61,7 +61,7 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>
         await Task.WhenAll([first, .. flowsCompletion]);
     }
 
-    public ArgumentOutOfRangeException? ValidateKey(int flowIndex)
+    public ArgumentOutOfRangeException? ValidateIndex(int flowIndex)
         => flowIndex < 0 || flowIndex >= FlowsCount
             ? new(nameof(flowIndex), $"Index to be between 0 inclusive and FlowsCount:{FlowsCount} exclusive.")
             : null;
@@ -69,7 +69,7 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>
     /// <param name="flowIndex">Index to be between 0 inclusive and FlowsCount exclusive.</param>
     public bool Enqueue(int flowIndex, TMessage toEnqueue)
     {
-        if (ValidateKey(flowIndex) is { } exception)
+        if (ValidateIndex(flowIndex) is { } exception)
         {
             throw exception;
         }
@@ -79,7 +79,7 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>
     /// <param name="flowIndex">Index to be between 0 inclusive and FlowsCount exclusive.</param>
     public Task<bool> EnqueueAsync(int flowIndex, TMessage toEnqueue, CancellationToken cancellationToken = default)
     {
-        if (ValidateKey(flowIndex) is { } exception)
+        if (ValidateIndex(flowIndex) is { } exception)
         {
             throw exception;
         }
