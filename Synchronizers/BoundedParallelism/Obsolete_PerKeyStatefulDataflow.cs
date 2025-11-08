@@ -1,10 +1,13 @@
 namespace Synchronizers.BoundedParallelism; // Not worth breaking change
 
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
+[EditorBrowsable(EditorBrowsableState.Never)]
+[Obsolete("Please use PerKeySynchronizers.BoundedParallelism.PerKeyStatefulActionBlock instead")]
 public sealed class PerKeyStatefulDataflow<TState, TMessage>(
     int flowsCount,
     Func<TState> initialStateFactory,

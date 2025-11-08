@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
+
+[EditorBrowsable(EditorBrowsableState.Never)]
+[Obsolete("Please use PerKeySynchronizers.BoundedParallelism.PerKeyActionBlockBase instead")]
 public abstract class PerKeyDataflowBase<TMessage>
     : IDisposable
 {
