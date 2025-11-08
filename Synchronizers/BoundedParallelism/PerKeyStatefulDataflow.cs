@@ -1,9 +1,10 @@
+namespace Synchronizers.BoundedParallelism; // Not worth breaking change
+
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-
-namespace Synchronizers.BoundedParallelism;
 
 public sealed class PerKeyStatefulDataflow<TState, TMessage>
     : IDisposable
@@ -61,6 +62,7 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>
         await Task.WhenAll([first, .. flowsCompletion]);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ArgumentOutOfRangeException? ValidateIndex(int flowIndex)
         => flowIndex < 0 || flowIndex >= FlowsCount
             ? new(nameof(flowIndex), $"Index to be between 0 inclusive and FlowsCount:{FlowsCount} exclusive.")
@@ -84,6 +86,25 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>
             throw exception;
         }
         return flows[flowIndex].SendAsync(toEnqueue, cancellationToken);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int GetKeyIndex<TKey>(TKey key)
+        where TKey : notnull
+        => key.GetHashCode() % FlowsCount;
+
+    public bool Enqueue<TKey>(TKey flowKey, TMessage toEnqueue)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(flowKey);
+        return Enqueue(GetKeyIndex(flowKey), toEnqueue);
+    }
+
+    public Task<bool> EnqueueAsync<TKey>(TKey flowKey, TMessage toEnqueue, CancellationToken cancellationToken = default)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(flowKey);
+        return EnqueueAsync(GetKeyIndex(flowKey), toEnqueue, cancellationToken);
     }
 
     public void Dispose()
