@@ -63,6 +63,13 @@ public abstract class PerKeyActionBlockBase<TMessage>
         }
     }
 
+    /// <summary>
+    /// Enqueues an item to one of <see cref="ActionBlock{TMessage}"/>.
+    /// </summary>
+    /// <param name="index">Index to specific <see cref="ActionBlock{TMessage}"/> that will receive the message. 
+    /// Has be between 0 inclusive and <see cref="ActionBlocksCount"/> exclusive.</param>
+    /// <param name="toEnqueue">Message to put onto <see cref="ActionBlock{TMessage}"/> queue.</param>
+    /// <returns>true if the item was accepted by the target block; otherwise, false.</returns>
     public bool Enqueue(int index, TMessage toEnqueue)
     {
         ObjectDisposedException.ThrowIf(disposedValue, this);
@@ -70,6 +77,14 @@ public abstract class PerKeyActionBlockBase<TMessage>
         return actionBlocks[index].Post(toEnqueue);
     }
 
+    /// <summary>
+    /// Enqueues an item to one of <see cref="ActionBlock{TMessage}"/>.
+    /// </summary>
+    /// <param name="index">Index to specific <see cref="ActionBlock{TMessage}"/> that will receive the message. 
+    /// Has be between 0 inclusive and <see cref="ActionBlocksCount"/> exclusive.</param>
+    /// <param name="toEnqueue">Message to put onto <see cref="ActionBlock{TMessage}"/> queue.</param>
+    /// <param name="cancellationToken">Cancellation of enqueuing.</param>
+    /// <returns>true if the item was accepted by the target block; otherwise, false.</returns>
     public Task<bool> EnqueueAsync(int index, TMessage toEnqueue, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(disposedValue, this);
@@ -82,6 +97,13 @@ public abstract class PerKeyActionBlockBase<TMessage>
         where TKey : notnull
         => key.GetHashCode() % actionBlocks.Length;
 
+    /// <summary>
+    /// Enqueues an item to one of <see cref="ActionBlock{TMessage}"/>.
+    /// </summary>
+    /// <typeparam name="TKey">Type of key used for deriving an index.</typeparam>
+    /// <param name="key">Key used for deriving index to specific <see cref="ActionBlock{TMessage}"/>.</param>
+    /// <param name="toEnqueue">Message to put onto <see cref="ActionBlock{TMessage}"/> queue.</param>
+    /// <returns>true if the item was accepted by the target block; otherwise, false.</returns>
     public bool Enqueue<TKey>(TKey key, TMessage toEnqueue)
         where TKey : notnull
     {
@@ -90,6 +112,14 @@ public abstract class PerKeyActionBlockBase<TMessage>
         return actionBlocks[GetKeyIndex(key)].Post(toEnqueue);
     }
 
+    /// <summary>
+    /// Enqueues an item to one of <see cref="ActionBlock{TMessage}"/>.
+    /// </summary>
+    /// <typeparam name="TKey">Type of key used for deriving an index.</typeparam>
+    /// <param name="key">Key used for deriving index to specific <see cref="ActionBlock{TMessage}"/>.</param>
+    /// <param name="toEnqueue">Message to put onto <see cref="ActionBlock{TMessage}"/> queue.</param>
+    /// <param name="cancellationToken">Cancellation of enqueuing.</param>
+    /// <returns>true if the item was accepted by the target block; otherwise, false.</returns>
     public Task<bool> EnqueueAsync<TKey>(TKey key, TMessage toEnqueue, CancellationToken cancellationToken = default)
         where TKey : notnull
     {
