@@ -1,6 +1,7 @@
 namespace Synchronizers.BoundedParallelism; // Not worth breaking change
 
 using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,15 +10,15 @@ using System.Threading.Tasks.Dataflow;
 public abstract class PerKeyDataflowBase<TMessage>
     : IDisposable
 {
-    protected readonly ActionBlock<TMessage>[] flows;
     protected readonly CancellationTokenSource cancellationSource;
+    private readonly ActionBlock<TMessage>[] flows;
     private bool disposedValue;
 
     public int FlowsCount => flows.Length;
     public Task Completion { get; }
 
     protected PerKeyDataflowBase(
-        Func<ExecutionDataflowBlockOptions, ActionBlock<TMessage>[]> flowsInitialization,
+        object initializeState,
         ExecutionDataflowBlockOptions? perFlowOptions = null)
     {
         ExecutionDataflowBlockOptions optionsWithLinkedToken;
@@ -41,9 +42,11 @@ public abstract class PerKeyDataflowBase<TMessage>
             cancellationSource = new();
             optionsWithLinkedToken = new() { CancellationToken = cancellationSource.Token };
         }
-        flows = flowsInitialization(optionsWithLinkedToken);
+        flows = InitializeFlows(initializeState, optionsWithLinkedToken);
         Completion = CreateCompletion(flows, cancellationSource);
     }
+
+    protected abstract ActionBlock<TMessage>[] InitializeFlows(object initializeState, ExecutionDataflowBlockOptions options);
 
     private static async Task CreateCompletion(ActionBlock<TMessage>[] flows, CancellationTokenSource cancellationSource)
     {
@@ -53,6 +56,8 @@ public abstract class PerKeyDataflowBase<TMessage>
         await Task.WhenAll([first, .. flowsCompletion]);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public ArgumentOutOfRangeException? ValidateIndex(int flowIndex)
         => flowIndex < 0 || flowIndex >= FlowsCount
             ? new(nameof(flowIndex), $"Index to be between 0 inclusive and FlowsCount:{FlowsCount} exclusive.")

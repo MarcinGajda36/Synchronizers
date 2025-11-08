@@ -10,23 +10,25 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>(
     Func<TState> initialStateFactory,
     Func<TState, TMessage, CancellationToken, ValueTask<TState>> flowAction,
     ExecutionDataflowBlockOptions? perFlowOptions = null)
-    : PerKeyDataflowBase<TMessage>(CreateInitializationFactory(flowsCount, initialStateFactory, flowAction), perFlowOptions)
+    : PerKeyDataflowBase<TMessage>(new InitializeState(flowsCount, initialStateFactory, flowAction), perFlowOptions)
 {
-    private static Func<ExecutionDataflowBlockOptions, ActionBlock<TMessage>[]> CreateInitializationFactory(
-        int flowsCount,
-        Func<TState> initialStateFactory,
-        Func<TState, TMessage, CancellationToken, ValueTask<TState>> flowAction)
-            => options =>
-            {
-                var token = options.CancellationToken;
-                var flows = new ActionBlock<TMessage>[flowsCount];
-                for (var idx = 0; idx < flows.Length; idx++)
-                {
-                    var flowState = initialStateFactory();
-                    flows[idx] = new ActionBlock<TMessage>(
-                        async message => flowState = await flowAction(flowState, message, token),
-                        options);
-                }
-                return flows;
-            };
+    private sealed record InitializeState(
+        int FlowsCount,
+        Func<TState> InitialStateFactory,
+        Func<TState, TMessage, CancellationToken, ValueTask<TState>> FlowAction);
+
+    protected override ActionBlock<TMessage>[] InitializeFlows(object state, ExecutionDataflowBlockOptions options)
+    {
+        var (flowsCount, initialStateFactory, flowsAction) = (InitializeState)state;
+        var token = options.CancellationToken;
+        var flows = new ActionBlock<TMessage>[flowsCount];
+        for (var idx = 0; idx < flows.Length; idx++)
+        {
+            var flowState = initialStateFactory();
+            flows[idx] = new ActionBlock<TMessage>(
+                async message => flowState = await flowAction(flowState, message, token),
+                options);
+        }
+        return flows;
+    }
 }
