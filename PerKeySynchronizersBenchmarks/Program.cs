@@ -4,8 +4,6 @@ using BenchmarkDotNet.Running;
 
 internal class Program
 {
-    private static void Main(string[] args)
-    {
-        _ = BenchmarkRunner.Run<PerKeyTkey>();
-    }
+    private static void Main(string[] args) 
+        => _ = BenchmarkRunner.Run<PerKeyTkey>();
 }

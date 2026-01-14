@@ -1,4 +1,5 @@
 ﻿namespace PerKeySynchronizersTests;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -181,9 +182,7 @@ internal class PerKeySynchronizer_TKey_Tests
 
         Assert.Multiple(() =>
         {
-            _ = Assert.ThrowsAsync<TaskCanceledException>(async () =>
-            {
-                _ = await synchronizer.SynchronizeAsync(
+            _ = Assert.ThrowsAsync<TaskCanceledException>(async () => _ = await synchronizer.SynchronizeAsync(
                     1,
                     "_",
                     async (_, cancellationToken) =>
@@ -192,8 +191,7 @@ internal class PerKeySynchronizer_TKey_Tests
                         isFunctionExecuted = true;
                         return isFunctionExecuted;
                     },
-                    cancellationTokenSource.Token);
-            });
+                    cancellationTokenSource.Token));
 
             Assert.That(isFunctionExecuted, Is.False);
         });

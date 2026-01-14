@@ -1,4 +1,5 @@
 ﻿namespace PerKeySynchronizersBenchmarks;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using PerKeySynchronizers.UnboundedParallelism;

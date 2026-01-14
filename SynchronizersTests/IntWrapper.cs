@@ -1,4 +1,5 @@
 ﻿namespace PerKeySynchronizersTests;
+
 using System;
 
 public class IntWrapper(int x)
