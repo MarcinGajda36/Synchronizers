@@ -52,7 +52,7 @@ public abstract class PerKeyDataflowBase<TMessage>
 
     private static async Task CreateCompletion(ActionBlock<TMessage>[] flows, CancellationTokenSource cancellationSource)
     {
-        var flowsCompletion = Array.ConvertAll(flows, flow => flow.Completion);
+        var flowsCompletion = Array.ConvertAll(flows, static flow => flow.Completion);
         var first = await Task.WhenAny(flowsCompletion);
         await cancellationSource.CancelAsync();
         await Task.WhenAll([first, .. flowsCompletion]);

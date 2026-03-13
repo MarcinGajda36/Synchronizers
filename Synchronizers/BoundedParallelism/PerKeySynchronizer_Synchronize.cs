@@ -136,5 +136,5 @@ public partial struct PerKeySynchronizer
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => Synchronize(key, action, (action, token) => action(token), cancellationToken);
+        => Synchronize(key, action, static (action, token) => action(token), cancellationToken);
 }

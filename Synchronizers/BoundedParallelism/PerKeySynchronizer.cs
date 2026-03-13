@@ -60,7 +60,7 @@ public partial struct PerKeySynchronizer
         var original = Interlocked.Exchange(ref pool!, null);
         if (original != null)
         {
-            Array.ForEach(original, semaphore => semaphore.Dispose());
+            Array.ForEach(original, static semaphore => semaphore.Dispose());
         }
     }
 
