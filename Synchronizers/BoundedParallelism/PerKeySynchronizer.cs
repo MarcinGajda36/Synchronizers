@@ -1,25 +1,22 @@
 ﻿namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
 public partial struct PerKeySynchronizer
     : IPerKeySynchronizer, IDisposable, IEquatable<PerKeySynchronizer>
 {
-    private const int DefaultMaxDegreeOfParallelism = 32;
+    private const int DefaultMaxDegreeOfParallelism = 67;
 
     private SemaphoreSlim[] pool;
 
     /// <summary>
     /// Synchronizes operations so all operation on given key happen one at a time, 
     /// while allowing operations for different keys to happen in parallel.
-    /// Uses Bit Mask to grab semaphore for given key.
     /// </summary>
     /// <param name="maxDegreeOfParallelism">
-    /// Maximum total parallel operation. 
-    /// Has to be at least 1 and a power of 2.
+    /// Maximum total parallel operation. Has to be at least 1. Prime number is recommended but not necessary.
     /// </param>
     public PerKeySynchronizer(int maxDegreeOfParallelism = DefaultMaxDegreeOfParallelism)
     {
@@ -41,19 +38,19 @@ public partial struct PerKeySynchronizer
 
     private static void ValidateSize(int maxDegreeOfParallelism)
     {
-        if (maxDegreeOfParallelism < 1 || BitOperations.IsPow2(maxDegreeOfParallelism) is false)
+        if (maxDegreeOfParallelism < 1)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
-                "Max degree of parallelism has to be at least 1 and a power of 2.");
+                "Max degree of parallelism has to be at least 1.");
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetKeyIndex<TKey>(TKey key, int poolLength)
         where TKey : notnull
-        => key.GetHashCode() & (poolLength - 1);
+        => key.GetHashCode() % poolLength;
 
     public void Dispose()
     {
