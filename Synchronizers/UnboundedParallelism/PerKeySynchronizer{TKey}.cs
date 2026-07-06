@@ -15,7 +15,6 @@ internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
 /// <summary>
 /// Synchronizes operations so all operation on given key happen one at a time, 
 /// while allowing operations for different keys to happen in parallel.
-/// Uses Dictionary<TKey, ...> inside lock to grab semaphore for given key.
 /// </summary>
 /// <typeparam name="TKey"></typeparam>
 /// <param name="equalityComparer">
@@ -25,6 +24,11 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
     : IPerKeySynchronizer<TKey>, IEquatable<PerKeySynchronizer<TKey>>
     where TKey : notnull
 {
+
+    /// <summary>
+    /// Synchronizes operations so all operation on given key happen one at a time, 
+    /// while allowing operations for different keys to happen in parallel.
+    /// </summary>
     public PerKeySynchronizer() : this(null) { }
 
     private readonly Dictionary<TKey, SemaphoreCountPair> semaphores = new(equalityComparer);

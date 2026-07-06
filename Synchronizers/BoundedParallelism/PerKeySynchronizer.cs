@@ -24,6 +24,11 @@ public partial struct PerKeySynchronizer
         pool = CreatePool(maxDegreeOfParallelism);
     }
 
+    /// <summary>
+    /// Synchronizes operations so all operation on given key happen one at a time, 
+    /// while allowing operations for different keys to happen in parallel.
+    /// Defaults to same maxDegreeOfParallelism as argument taking constructor.
+    /// </summary>
     public PerKeySynchronizer() : this(DefaultMaxDegreeOfParallelism) { }
 
     private static SemaphoreSlim[] CreatePool(int maxDegreeOfParallelism)

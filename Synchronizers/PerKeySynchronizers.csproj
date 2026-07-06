@@ -9,9 +9,9 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Marcin Gajda</Authors>
     <PackageProjectUrl>https://github.com/MarcinGajda36/Synchronizers</PackageProjectUrl>
-    <Description>Helpers to deal with per key synchronization.</Description>
+    <Description>Helpers to deal with per key synchronization. Main types: PerKeySynchronizer{TKey}, PerKeySynchronizer</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
