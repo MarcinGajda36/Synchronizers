@@ -16,7 +16,7 @@ internal struct SemaphoreCountPair(SemaphoreSlim semaphore, int count)
 /// Synchronizes operations so all operation on given key happen one at a time, 
 /// while allowing operations for different keys to happen in parallel.
 /// </summary>
-/// <typeparam name="TKey"></typeparam>
+/// <typeparam name="TKey">Type of key that determines if operations should use same synchronization or not.</typeparam>
 /// <param name="equalityComparer">
 /// Comparer used to determine if keys are the same.
 /// </param>

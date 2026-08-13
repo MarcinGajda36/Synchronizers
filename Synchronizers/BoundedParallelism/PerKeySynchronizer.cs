@@ -4,6 +4,10 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
+/// <summary>
+/// Synchronizes operations so all operation on given key happen one at a time, 
+/// while allowing operations for different keys to happen in parallel.
+/// </summary>
 public partial struct PerKeySynchronizer
     : IPerKeySynchronizer, IDisposable, IEquatable<PerKeySynchronizer>
 {
@@ -78,5 +82,9 @@ public partial struct PerKeySynchronizer
     public static bool operator !=(PerKeySynchronizer left, PerKeySynchronizer right)
         => !left.Equals(right);
     public override readonly int GetHashCode()
-        => pool.GetHashCode();
+    {
+        var _pool = pool;
+        ValidateDispose(_pool);
+        return _pool.GetHashCode();
+    }
 }

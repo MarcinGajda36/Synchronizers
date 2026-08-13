@@ -146,4 +146,12 @@ public interface IPerKeySynchronizer
     void SynchronizeAll(
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default);
+    Task<TResult[]> SynchronizeGroupedAsync<TKey, TArgument, TResult>(IEnumerable<TKey> keys, TArgument argument, Func<TArgument, IEnumerable<TKey>, CancellationToken, ValueTask<TResult>> perGroupResult, CancellationToken cancellationToken = default) where TKey : notnull;
+    Task SynchronizeGroupedAsync<TKey, TArgument>(IEnumerable<TKey> keys, TArgument argument, Func<TArgument, IEnumerable<TKey>, CancellationToken, ValueTask> perGroupFunc, CancellationToken cancellationToken = default) where TKey : notnull;
+    Task<TResult[]> SynchronizeGroupedAsync<TKey, TResult>(IEnumerable<TKey> keys, Func<IEnumerable<TKey>, CancellationToken, ValueTask<TResult>> perGroupResult, CancellationToken cancellationToken = default) where TKey : notnull;
+    Task SynchronizeGroupedAsync<TKey>(IEnumerable<TKey> keys, Func<IEnumerable<TKey>, CancellationToken, ValueTask> perGroupFunc, CancellationToken cancellationToken = default) where TKey : notnull;
+    TResult[] SynchronizeGrouped<TKey, TArgument, TResult>(IEnumerable<TKey> keys, TArgument argument, Func<TArgument, IEnumerable<TKey>, CancellationToken, TResult> perGroupResult, CancellationToken cancellationToken = default) where TKey : notnull;
+    void SynchronizeGrouped<TKey, TArgument>(IEnumerable<TKey> keys, TArgument argument, Action<TArgument, IEnumerable<TKey>, CancellationToken> perGroupAction, CancellationToken cancellationToken = default) where TKey : notnull;
+    TResult[] SynchronizeGrouped<TKey, TResult>(IEnumerable<TKey> keys, Func<IEnumerable<TKey>, CancellationToken, TResult> perGroupResult, CancellationToken cancellationToken = default) where TKey : notnull;
+    void SynchronizeGrouped<TKey>(IEnumerable<TKey> keys, Action<IEnumerable<TKey>, CancellationToken> perGroupAction, CancellationToken cancellationToken = default) where TKey : notnull;
 }
