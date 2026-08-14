@@ -39,6 +39,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly ValueTask<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -86,6 +87,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly ValueTask SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -133,6 +135,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly ValueTask<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
@@ -144,6 +147,7 @@ public partial struct PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
+    /// <inheritdoc/>
     public readonly ValueTask SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask> func,
@@ -155,6 +159,7 @@ public partial struct PerKeySynchronizer
             static (func, cancellationToken) => func(cancellationToken),
             cancellationToken);
 
+    /// <inheritdoc/>
     public readonly TResult SynchronizeMany<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -192,6 +197,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly void SynchronizeMany<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -229,6 +235,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, TResult> resultFactory,
@@ -240,6 +247,7 @@ public partial struct PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
+    /// <inheritdoc/>
     public readonly void SynchronizeMany<TKey>(
         IEnumerable<TKey> keys,
         Action<CancellationToken> action,

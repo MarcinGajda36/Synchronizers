@@ -7,6 +7,18 @@ using System.Threading.Tasks;
 
 public interface IPerKeySynchronizer
 {
+    /// <summary>
+    /// Acquire synchronization for a single <paramref name="key"/>, execute an asynchronous factory with the supplied <paramref name="argument"/>,
+    /// and return its result. Only one caller holding the same key will run concurrently.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="argument">An argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Async factory invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
     ValueTask<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
@@ -14,6 +26,17 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a single <paramref name="key"/> and execute an asynchronous action with the supplied <paramref name="argument"/>.
+    /// Only one caller holding the same key will run concurrently.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="func"/>.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="argument">An argument passed to the <paramref name="func"/>.</param>
+    /// <param name="func">Async action invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes when the action finishes.</returns>
     ValueTask SynchronizeAsync<TKey, TArgument>(
         TKey key,
         TArgument argument,
@@ -21,18 +44,47 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a single <paramref name="key"/>, execute an asynchronous factory that does not take an extra argument,
+    /// and return its result.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="resultFactory">Async factory invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
     ValueTask<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a single <paramref name="key"/> and execute an asynchronous action that does not take an extra argument.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="func">Async action invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes when the action finishes.</returns>
     ValueTask SynchronizeAsync<TKey>(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/>, and return its result.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="argument">An argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Factory invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
     TResult Synchronize<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
@@ -40,6 +92,15 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a single <paramref name="key"/> and execute <paramref name="action"/>.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="action"/>.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="argument">An argument passed to the <paramref name="action"/>.</param>
+    /// <param name="action">Action invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     void Synchronize<TKey, TArgument>(
         TKey key,
         TArgument argument,
@@ -47,18 +108,46 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/> (no extra argument), and return its result.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="resultFactory">Factory invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
     TResult Synchronize<TKey, TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a single <paramref name="key"/> and execute <paramref name="action"/> (no extra argument).
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="action">Action invoked while holding the key's synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     void Synchronize<TKey>(
         TKey key,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a collection of <paramref name="keys"/>, execute an asynchronous factory once (guarding against concurrent runs for same keys),
+    /// and return its result. Implementations may ensure deterministic ordering or batching semantics.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Async factory executed while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
     ValueTask<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -66,6 +155,16 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a collection of <paramref name="keys"/> and execute an asynchronous action with the supplied <paramref name="argument"/>.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="func"/>.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="argument">Argument passed to the <paramref name="func"/>.</param>
+    /// <param name="func">Async action executed while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes when the action finishes.</returns>
     ValueTask SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -73,18 +172,47 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a collection of <paramref name="keys"/>, execute an asynchronous factory that does not take an extra argument,
+    /// and return its result.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TResult">Type of the result.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="resultFactory">Async factory executed while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
     ValueTask<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for a collection of <paramref name="keys"/> and execute an asynchronous action that does not take an extra argument.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="func">Async action executed while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes when the action finishes.</returns>
     ValueTask SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/>, execute <paramref name="resultFactory"/>, and return its result.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Factory invoked while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
     TResult SynchronizeMany<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -92,6 +220,15 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/> and execute <paramref name="action"/>.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="action"/>.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="argument">Argument passed to the <paramref name="action"/>.</param>
+    /// <param name="action">Action invoked while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     void SynchronizeMany<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -99,50 +236,124 @@ public interface IPerKeySynchronizer
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/>, execute <paramref name="resultFactory"/> (no extra argument), and return its result.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TResult">Type of the result.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="resultFactory">Factory invoked while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
     TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/> and execute <paramref name="action"/> (no extra argument).
+    /// </summary>
+    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
+    /// <param name="action">Action invoked while holding synchronization for the provided keys.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     void SynchronizeMany<TKey>(
         IEnumerable<TKey> keys,
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
         where TKey : notnull;
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock), execute an asynchronous factory with the supplied <paramref name="argument"/>,
+    /// and return its result. Only one caller across all keys will run concurrently.
+    /// </summary>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Async factory invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
     ValueTask<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock) and execute an asynchronous action with the supplied <paramref name="argument"/>.
+    /// </summary>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="func"/>.</typeparam>
+    /// <param name="argument">Argument passed to the <paramref name="func"/>.</param>
+    /// <param name="func">Async action invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     ValueTask SynchronizeAllAsync<TArgument>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock), execute an asynchronous factory that does not take an extra argument,
+    /// and return its result.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="resultFactory">Async factory invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
     ValueTask<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock) and execute an asynchronous action that does not take an extra argument.
+    /// </summary>
+    /// <param name="func">Async action invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     ValueTask SynchronizeAllAsync(
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock), execute <paramref name="resultFactory"/>, and return its result synchronously.
+    /// </summary>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Factory invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
     TResult SynchronizeAll<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock) and execute <paramref name="action"/> synchronously.
+    /// </summary>
+    /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="action"/>.</typeparam>
+    /// <param name="argument">Argument passed to the <paramref name="action"/>.</param>
+    /// <param name="action">Action invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     void SynchronizeAll<TArgument>(
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock), execute <paramref name="resultFactory"/> synchronously (no extra argument), and return its result.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="resultFactory">Factory invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
     TResult SynchronizeAll<TResult>(
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Acquire synchronization for all managed keys (global lock) and execute <paramref name="action"/> synchronously (no extra argument).
+    /// </summary>
+    /// <param name="action">Action invoked while holding global synchronization.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     void SynchronizeAll(
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default);

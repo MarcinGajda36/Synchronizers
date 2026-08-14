@@ -14,6 +14,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly ValueTask<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
@@ -53,6 +54,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly ValueTask SynchronizeAllAsync<TArgument>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
@@ -92,6 +94,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly ValueTask<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
@@ -100,6 +103,7 @@ public partial struct PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
+    /// <inheritdoc/>
     public readonly ValueTask SynchronizeAllAsync(
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
@@ -108,6 +112,7 @@ public partial struct PerKeySynchronizer
             static (func, cancellationToken) => func(cancellationToken),
             cancellationToken);
 
+    /// <inheritdoc/>
     public readonly TResult SynchronizeAll<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
@@ -138,6 +143,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly void SynchronizeAll<TArgument>(
         TArgument argument,
         Action<TArgument, CancellationToken> action,
@@ -168,6 +174,7 @@ public partial struct PerKeySynchronizer
         }
     }
 
+    /// <inheritdoc/>
     public readonly TResult SynchronizeAll<TResult>(
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
@@ -176,6 +183,7 @@ public partial struct PerKeySynchronizer
             static (resultFactory, cancellationToken) => resultFactory(cancellationToken),
             cancellationToken);
 
+    /// <inheritdoc/>
     public readonly void SynchronizeAll(
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default)
