@@ -3,11 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 public partial struct PerKeySynchronizer
 {
+    /// <summary>
+    /// Groups keys by semaphore they would land on and invokes all groups asynchronously.
+    /// </summary>
+    /// <returns>Result per synchronization group.</returns>
     public readonly Task<TResult[]> SynchronizeGroupedAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -18,23 +23,46 @@ public partial struct PerKeySynchronizer
         var pool_ = pool;
         ValidateDispose(pool_);
         var poolLength = pool_.Length;
-        var results = keys
-            .GroupBy(
-                key => GetKeyIndex(key, poolLength),
-                async (index, keys) =>
-                {
-                    var semaphore = pool_[index];
-                    await semaphore.WaitAsync(cancellationToken);
-                    try
-                    {
-                        return await perGroupResult(argument, keys, cancellationToken);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                });
+        var keysByIndex = new Dictionary<int, List<TKey>>();
+        foreach (var key in keys)
+        {
+            ref var group = ref CollectionsMarshal.GetValueRefOrAddDefault(keysByIndex, GetKeyIndex(key, poolLength), out var exists);
+            if (exists)
+            {
+                group!.Add(key);
+            }
+            else
+            {
+                group = [key];
+            }
+        }
+        var results = new Task<TResult>[keysByIndex.Count];
+        var resultIdx = 0;
+        foreach (var (index, group) in keysByIndex)
+        {
+            results[resultIdx++] = SynchronizeGroupCore(pool_[index], argument, group, perGroupResult, cancellationToken);
+        }
+
         return Task.WhenAll(results);
+
+        static async Task<TResult> SynchronizeGroupCore(
+            SemaphoreSlim semaphore,
+            TArgument argument,
+            List<TKey> group,
+            Func<TArgument, IEnumerable<TKey>, CancellationToken, ValueTask<TResult>> perGroupResult,
+            CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await perGroupResult(argument, group, cancellationToken);
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
+        }
     }
 
     public readonly Task SynchronizeGroupedAsync<TKey, TArgument>(
