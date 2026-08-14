@@ -1,31 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <IsPackable>true</IsPackable>
-    <DebugType>embedded</DebugType>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Authors>Marcin Gajda</Authors>
-    <PackageProjectUrl>https://github.com/MarcinGajda36/Synchronizers</PackageProjectUrl>
-    <Description>Helpers to deal with per key synchronization. Main types: PerKeySynchronizer{TKey}, PerKeySynchronizer</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>3.1.0</Version>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<IsPackable>true</IsPackable>
+		<DebugType>embedded</DebugType>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Marcin Gajda</Authors>
+		<PackageProjectUrl>https://github.com/MarcinGajda36/Synchronizers</PackageProjectUrl>
+		<Description>Helpers to deal with per key synchronization. Main types: PerKeySynchronizer{TKey}, PerKeySynchronizer</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Version>3.1.0</Version>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <IsTrimmable>True</IsTrimmable>
-    <Optimize>False</Optimize>
-    <IsAotCompatible>True</IsAotCompatible>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<IsTrimmable>True</IsTrimmable>
+		<Optimize>False</Optimize>
+		<IsAotCompatible>True</IsAotCompatible>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <IsTrimmable>True</IsTrimmable>
-    <Optimize>True</Optimize>
-    <IsAotCompatible>True</IsAotCompatible>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<IsTrimmable>True</IsTrimmable>
+		<Optimize>True</Optimize>
+		<IsAotCompatible>True</IsAotCompatible>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	</PropertyGroup>
 
 </Project>
