@@ -56,6 +56,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
+    /// <inheritdoc/>
     public async ValueTask<TResult> SynchronizeAsync<TArgument, TResult>(
         TKey key,
         TArgument argument,
@@ -82,6 +83,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
+    /// <inheritdoc/>
     public async ValueTask SynchronizeAsync<TArgument>(
         TKey key,
         TArgument argument,
@@ -108,18 +110,21 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
+    /// <inheritdoc/>
     public ValueTask<TResult> SynchronizeAsync<TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default)
         => SynchronizeAsync(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
+    /// <inheritdoc/>
     public ValueTask SynchronizeAsync(
         TKey key,
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default)
         => SynchronizeAsync(key, func, static (func, token) => func(token), cancellationToken);
 
+    /// <inheritdoc/>
     public TResult Synchronize<TArgument, TResult>(
         TKey key,
         TArgument argument,
@@ -146,6 +151,7 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
+    /// <inheritdoc/>
     public void Synchronize<TArgument>(
         TKey key,
         TArgument argument,
@@ -172,12 +178,14 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         }
     }
 
+    /// <inheritdoc/>
     public TResult Synchronize<TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
         => Synchronize(key, resultFactory, static (resultFactory, token) => resultFactory(token), cancellationToken);
 
+    /// <inheritdoc/>
     public void Synchronize(
         TKey key,
         Action<CancellationToken> action,
