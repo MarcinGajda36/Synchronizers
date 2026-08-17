@@ -20,7 +20,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
@@ -40,7 +40,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask SynchronizeAsync<TKey, TArgument>(
         TKey key,
@@ -60,7 +60,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
@@ -77,7 +77,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask SynchronizeAsync<TKey>(
         TKey key,
@@ -98,7 +98,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult Synchronize<TKey, TArgument, TResult>(
         TKey key,
@@ -117,7 +117,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding the key's synchronizer.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void Synchronize<TKey, TArgument>(
         TKey key,
@@ -137,7 +137,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult Synchronize<TKey, TResult>(
         TKey key,
@@ -153,7 +153,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding the key's synchronizer.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void Synchronize<TKey>(
         TKey key,
@@ -174,7 +174,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
@@ -194,7 +194,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
@@ -214,7 +214,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -231,7 +231,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
@@ -252,7 +252,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult SynchronizeMany<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
@@ -271,8 +271,8 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding the all keys synchronizers.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
-    /// </remarks>>
+    /// Only one caller holding the same synchronizer will run at a time.
+    /// </remarks>
     void SynchronizeMany<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -291,7 +291,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -306,7 +306,7 @@ public interface IPerKeySynchronizer
     /// <param name="keys">The keys for acquiring synchronizers.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void SynchronizeMany<TKey>(
         IEnumerable<TKey> keys,
@@ -325,7 +325,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
@@ -341,7 +341,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask SynchronizeAllAsync<TArgument>(
         TArgument argument,
@@ -357,7 +357,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
@@ -371,7 +371,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     ValueTask SynchronizeAllAsync(
         Func<CancellationToken, ValueTask> func,
@@ -388,7 +388,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult SynchronizeAll<TArgument, TResult>(
         TArgument argument,
@@ -404,7 +404,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding all synchronizers.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void SynchronizeAll<TArgument>(
         TArgument argument,
@@ -420,7 +420,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult SynchronizeAll<TResult>(
         Func<CancellationToken, TResult> resultFactory,
@@ -432,7 +432,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding all synchronizers.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void SynchronizeAll(
         Action<CancellationToken> action,
@@ -452,7 +452,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="Task{TResult[]}"/> that completes with all the <paramref name="perGroupResult"/> results.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     Task<TResult[]> SynchronizeGroupedAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
@@ -474,7 +474,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="Task"/> that completes when all <paramref name="perGroupFunc"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     Task SynchronizeGroupedAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
@@ -495,7 +495,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="Task{TResult[]}"/> that completes with all the <paramref name="perGroupResult"/> results.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     Task<TResult[]> SynchronizeGroupedAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -514,7 +514,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="Task"/> that completes when all <paramref name="perGroupFunc"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     Task SynchronizeGroupedAsync<TKey>(
         IEnumerable<TKey> keys,
@@ -525,7 +525,7 @@ public interface IPerKeySynchronizer
     /// <summary>
     /// Groups <paramref name="keys"/> by synchronizer they land on. 
     /// Executes <paramref name="perGroupResult"/> with the supplied <paramref name="argument"/> once per group. 
-    /// Different groups are executed parallelly. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it, and returns its result.
+    /// Different groups are executed in parallel. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it, and returns its result.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="perGroupResult"/>.</typeparam>
@@ -536,7 +536,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>An array with all the <paramref name="perGroupResult"/> results.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult[] SynchronizeGrouped<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
@@ -548,7 +548,7 @@ public interface IPerKeySynchronizer
     /// <summary>
     /// Groups <paramref name="keys"/> by synchronizer they land on. 
     /// Executes <paramref name="perGroupAction"/> with the supplied <paramref name="argument"/> once per group. 
-    /// Different groups are executed parallelly. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it.
+    /// Different groups are executed in parallel. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="perGroupAction"/>.</typeparam>
@@ -557,7 +557,7 @@ public interface IPerKeySynchronizer
     /// <param name="perGroupAction">Action invoked while holding the group's synchronizer.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void SynchronizeGrouped<TKey, TArgument>(
         IEnumerable<TKey> keys,
@@ -569,7 +569,7 @@ public interface IPerKeySynchronizer
     /// <summary>
     /// Groups <paramref name="keys"/> by synchronizer they land on. 
     /// Executes <paramref name="perGroupResult"/> once per group. 
-    /// Different groups are executed parallelly. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it, and returns its result.
+    /// Different groups are executed in parallel. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it, and returns its result.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
@@ -578,7 +578,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>An array with all the <paramref name="perGroupResult"/> results.</returns>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     TResult[] SynchronizeGrouped<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -589,14 +589,14 @@ public interface IPerKeySynchronizer
     /// <summary>
     /// Groups <paramref name="keys"/> by synchronizer they land on. 
     /// Executes <paramref name="perGroupAction"/> once per group. 
-    /// Different groups are executed parallelly. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it.
+    /// Different groups are executed in parallel. Each group holds its own synchronizer, receives the <paramref name="keys"/> that landed on it.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <param name="keys">The keys for acquiring synchronizers.</param>
     /// <param name="perGroupAction">Action invoked while holding the group's synchronizer.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller for the same synchronizer will run at a time.
+    /// Only one caller holding the same synchronizer will run at a time.
     /// </remarks>
     void SynchronizeGrouped<TKey>(
         IEnumerable<TKey> keys,
