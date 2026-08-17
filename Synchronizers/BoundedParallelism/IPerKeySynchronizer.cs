@@ -20,7 +20,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
@@ -40,7 +40,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask SynchronizeAsync<TKey, TArgument>(
         TKey key,
@@ -60,7 +60,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
@@ -77,7 +77,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask SynchronizeAsync<TKey>(
         TKey key,
@@ -98,7 +98,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     TResult Synchronize<TKey, TArgument, TResult>(
         TKey key,
@@ -117,7 +117,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     void Synchronize<TKey, TArgument>(
         TKey key,
@@ -137,7 +137,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     TResult Synchronize<TKey, TResult>(
         TKey key,
@@ -153,7 +153,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     void Synchronize<TKey>(
         TKey key,
@@ -174,7 +174,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask<TResult> SynchronizeManyAsync<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
@@ -194,7 +194,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask SynchronizeManyAsync<TKey, TArgument>(
         IEnumerable<TKey> keys,
@@ -214,7 +214,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask<TResult> SynchronizeManyAsync<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -231,7 +231,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     ValueTask SynchronizeManyAsync<TKey>(
         IEnumerable<TKey> keys,
@@ -252,7 +252,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     TResult SynchronizeMany<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
@@ -271,7 +271,7 @@ public interface IPerKeySynchronizer
     /// <param name="action">Action invoked while holding the all keys synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>>
     void SynchronizeMany<TKey, TArgument>(
         IEnumerable<TKey> keys,
@@ -291,7 +291,7 @@ public interface IPerKeySynchronizer
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <returns>The <paramref name="resultFactory"/> result.</returns>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
@@ -306,7 +306,7 @@ public interface IPerKeySynchronizer
     /// <param name="keys">The keys for acquiring synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
     /// <remarks>
-    /// Only one caller holding the same key synchronization will run concurrently.
+    /// Only one caller holding the same synchronization will run concurrently.
     /// </remarks>
     void SynchronizeMany<TKey>(
         IEnumerable<TKey> keys,
@@ -315,95 +315,125 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock), execute an asynchronous factory with the supplied <paramref name="argument"/>,
-    /// and return its result. Only one caller across all keys will run concurrently.
+    /// Acquire all synchronizations, execute <paramref name="resultFactory"/> with the supplied <paramref name="argument"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
-    /// <param name="resultFactory">Async factory invoked while holding global synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Async factory invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     ValueTask<TResult> SynchronizeAllAsync<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock) and execute an asynchronous action with the supplied <paramref name="argument"/>.
+    /// Acquire all synchronizations, execute <paramref name="func"/> with the supplied <paramref name="argument"/>.
     /// </summary>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="func"/>.</typeparam>
-    /// <param name="argument">Argument passed to the <paramref name="func"/>.</param>
-    /// <param name="func">Async action invoked while holding global synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="func"/>.</param>
+    /// <param name="func">Async action invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     ValueTask SynchronizeAllAsync<TArgument>(
         TArgument argument,
         Func<TArgument, CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock), execute an asynchronous factory that does not take an extra argument,
+    /// Acquire all synchronizations, execute <paramref name="resultFactory"/>,
     /// and return its result.
     /// </summary>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="resultFactory">Async factory invoked while holding global synchronization.</param>
+    /// <param name="resultFactory">Async factory invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     ValueTask<TResult> SynchronizeAllAsync<TResult>(
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock) and execute an asynchronous action that does not take an extra argument.
+    /// Acquire all synchronizations, execute <paramref name="func"/>,
+    /// and return its result.
     /// </summary>
-    /// <param name="func">Async action invoked while holding global synchronization.</param>
+    /// <param name="func">Async factory invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes with the <paramref name="func"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     ValueTask SynchronizeAllAsync(
         Func<CancellationToken, ValueTask> func,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock), execute <paramref name="resultFactory"/>, and return its result synchronously.
+    /// Acquire all synchronizations, execute <paramref name="resultFactory"/> with the supplied <paramref name="argument"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
-    /// <param name="resultFactory">Factory invoked while holding global synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Factory invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
+    /// <returns>The <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     TResult SynchronizeAll<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock) and execute <paramref name="action"/> synchronously.
+    /// Acquire all synchronizations, execute <paramref name="action"/> with the supplied <paramref name="argument"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="action"/>.</typeparam>
-    /// <param name="argument">Argument passed to the <paramref name="action"/>.</param>
-    /// <param name="action">Action invoked while holding global synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="action"/>.</param>
+    /// <param name="action">Action invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     void SynchronizeAll<TArgument>(
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock), execute <paramref name="resultFactory"/> synchronously (no extra argument), and return its result.
+    /// Acquire all synchronizations, execute <paramref name="resultFactory"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="resultFactory">Factory invoked while holding global synchronization.</param>
+    /// <param name="resultFactory">Factory invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
+    /// <returns>The <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     TResult SynchronizeAll<TResult>(
         Func<CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Acquire synchronization for all managed keys (global lock) and execute <paramref name="action"/> synchronously (no extra argument).
+    /// Acquire all synchronizations, execute <paramref name="action"/>.
     /// </summary>
-    /// <param name="action">Action invoked while holding global synchronization.</param>
+    /// <param name="action">Action invoked while holding the all synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <remarks>
+    /// Only one caller holding the same synchronization will run concurrently.
+    /// </remarks>
     void SynchronizeAll(
         Action<CancellationToken> action,
         CancellationToken cancellationToken = default);
