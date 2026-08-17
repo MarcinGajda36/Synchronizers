@@ -240,16 +240,20 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/>, execute <paramref name="resultFactory"/>, and return its result.
+    /// Acquire all synchronizations for <paramref name="keys"/>, execute <paramref name="resultFactory"/> once with the supplied <paramref name="argument"/>,
+    /// and return its result.
     /// </summary>
-    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
-    /// <param name="argument">Argument passed to the <paramref name="resultFactory"/>.</param>
-    /// <param name="resultFactory">Factory invoked while holding synchronization for the provided keys.</param>
+    /// <param name="keys">The keys for acquiring synchronizations.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="resultFactory">Factory invoked while holding the all keys synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
+    /// <returns>The <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     TResult SynchronizeMany<TKey, TArgument, TResult>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -258,14 +262,17 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/> and execute <paramref name="action"/>.
+    /// Acquire all synchronizations for <paramref name="keys"/>, execute <paramref name="action"/> once with the supplied <paramref name="argument"/>.
     /// </summary>
-    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="action"/>.</typeparam>
-    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
-    /// <param name="argument">Argument passed to the <paramref name="action"/>.</param>
-    /// <param name="action">Action invoked while holding synchronization for the provided keys.</param>
+    /// <param name="keys">The keys for acquiring synchronizations.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="action"/>.</param>
+    /// <param name="action">Action invoked while holding the all keys synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>>
     void SynchronizeMany<TKey, TArgument>(
         IEnumerable<TKey> keys,
         TArgument argument,
@@ -274,14 +281,18 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/>, execute <paramref name="resultFactory"/> (no extra argument), and return its result.
+    /// Acquire all synchronizations for <paramref name="keys"/>, execute <paramref name="resultFactory"/> once,
+    /// and return its result.
     /// </summary>
-    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
-    /// <typeparam name="TResult">Type of the result.</typeparam>
-    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
-    /// <param name="resultFactory">Factory invoked while holding synchronization for the provided keys.</param>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <typeparam name="TResult">Type of the returned result.</typeparam>
+    /// <param name="keys">The keys for acquiring synchronizations.</param>
+    /// <param name="resultFactory">Factory invoked while holding the all keys synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
+    /// <returns>The <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     TResult SynchronizeMany<TKey, TResult>(
         IEnumerable<TKey> keys,
         Func<CancellationToken, TResult> resultFactory,
@@ -289,12 +300,14 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a collection of <paramref name="keys"/> and execute <paramref name="action"/> (no extra argument).
+    /// Acquire all synchronizations for <paramref name="keys"/>, execute <paramref name="action"/> once.
     /// </summary>
-    /// <typeparam name="TKey">Type of the keys. Must be non-nullable.</typeparam>
-    /// <param name="keys">Keys whose synchronization should be acquired together.</param>
-    /// <param name="action">Action invoked while holding synchronization for the provided keys.</param>
+    /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
+    /// <param name="keys">The keys for acquiring synchronizations.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     void SynchronizeMany<TKey>(
         IEnumerable<TKey> keys,
         Action<CancellationToken> action,
