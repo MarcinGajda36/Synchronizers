@@ -8,17 +8,20 @@ using System.Threading.Tasks;
 public interface IPerKeySynchronizer
 {
     /// <summary>
-    /// Acquire synchronization for a single <paramref name="key"/>, execute an asynchronous factory with the supplied <paramref name="argument"/>,
-    /// and return its result. Only one caller holding the same key will run concurrently.
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/> with the supplied <paramref name="argument"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
-    /// <param name="argument">An argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="resultFactory"/>.</param>
     /// <param name="resultFactory">Async factory invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     ValueTask<TResult> SynchronizeAsync<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
@@ -27,16 +30,18 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Acquire synchronization for a single <paramref name="key"/> and execute an asynchronous action with the supplied <paramref name="argument"/>.
-    /// Only one caller holding the same key will run concurrently.
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="func"/> with the supplied <paramref name="argument"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="func"/>.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
-    /// <param name="argument">An argument passed to the <paramref name="func"/>.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="func"/>.</param>
     /// <param name="func">Async action invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>A <see cref="ValueTask"/> that completes when the action finishes.</returns>
+    /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     ValueTask SynchronizeAsync<TKey, TArgument>(
         TKey key,
         TArgument argument,
@@ -45,15 +50,18 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Acquire synchronization for a single <paramref name="key"/>, execute an asynchronous factory that does not take an extra argument,
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/>,
     /// and return its result.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
     /// <param name="resultFactory">Async factory invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the factory result.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that completes with the <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     ValueTask<TResult> SynchronizeAsync<TKey, TResult>(
         TKey key,
         Func<CancellationToken, ValueTask<TResult>> resultFactory,
@@ -61,13 +69,16 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Acquire synchronization for a single <paramref name="key"/> and execute an asynchronous action that does not take an extra argument.
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="func"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
     /// <param name="func">Async action invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>A <see cref="ValueTask"/> that completes when the action finishes.</returns>
+    /// <returns>A <see cref="ValueTask"/> that completes when the <paramref name="func"/> finishes.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     ValueTask SynchronizeAsync<TKey>(
         TKey key,
         Func<CancellationToken, ValueTask> func,
@@ -75,16 +86,20 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/>, and return its result.
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/> with the supplied <paramref name="argument"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="resultFactory"/>.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
-    /// <param name="argument">An argument passed to the <paramref name="resultFactory"/>.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="resultFactory"/>.</param>
     /// <param name="resultFactory">Factory invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
+    /// <returns>The <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     TResult Synchronize<TKey, TArgument, TResult>(
         TKey key,
         TArgument argument,
@@ -93,14 +108,17 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a single <paramref name="key"/> and execute <paramref name="action"/>.
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="action"/> with the supplied <paramref name="argument"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TArgument">Type of the extra argument passed to <paramref name="action"/>.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
-    /// <param name="argument">An argument passed to the <paramref name="action"/>.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
+    /// <param name="argument">An extra argument passed to the <paramref name="action"/>.</param>
     /// <param name="action">Action invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     void Synchronize<TKey, TArgument>(
         TKey key,
         TArgument argument,
@@ -109,14 +127,18 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/> (no extra argument), and return its result.
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="resultFactory"/>,
+    /// and return its result.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
     /// <typeparam name="TResult">Type of the returned result.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
     /// <param name="resultFactory">Factory invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
-    /// <returns>The result produced by <paramref name="resultFactory"/>.</returns>
+    /// <returns>The <paramref name="resultFactory"/> result.</returns>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     TResult Synchronize<TKey, TResult>(
         TKey key,
         Func<CancellationToken, TResult> resultFactory,
@@ -124,12 +146,15 @@ public interface IPerKeySynchronizer
         where TKey : notnull;
 
     /// <summary>
-    /// Synchronously acquire synchronization for a single <paramref name="key"/> and execute <paramref name="action"/> (no extra argument).
+    /// Acquire synchronization for a single <paramref name="key"/>, execute <paramref name="action"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key. Must be non-nullable.</typeparam>
-    /// <param name="key">The key to synchronize on.</param>
+    /// <param name="key">The key for acquiring synchronization.</param>
     /// <param name="action">Action invoked while holding the key's synchronization.</param>
     /// <param name="cancellationToken">Token used to cancel waiting or execution.</param>
+    /// <remarks>
+    /// Only one caller holding the same key synchronization will run concurrently.
+    /// </remarks>
     void Synchronize<TKey>(
         TKey key,
         Action<CancellationToken> action,
