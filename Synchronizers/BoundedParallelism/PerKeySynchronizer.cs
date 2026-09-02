@@ -59,7 +59,7 @@ public partial struct PerKeySynchronizer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetKeyIndex<TKey>(TKey key, int poolLength)
         where TKey : notnull
-        => key.GetHashCode() % poolLength;
+        => (key.GetHashCode() & int.MaxValue) % poolLength; // '& int.MaxValue' to remove negative ints
 
     public void Dispose()
     {

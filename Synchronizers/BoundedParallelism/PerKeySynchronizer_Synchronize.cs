@@ -16,16 +16,15 @@ public partial struct PerKeySynchronizer
     {
         var pool_ = pool;
         ValidateDispose(pool_);
-        return Core(pool_, key, argument, resultFactory, cancellationToken);
+        var semaphore = pool_[GetKeyIndex(key, pool_.Length)];
+        return Core(semaphore, argument, resultFactory, cancellationToken);
 
         static async ValueTask<TResult> Core(
-            SemaphoreSlim[] pool,
-            TKey key,
+            SemaphoreSlim semaphore,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask<TResult>> resultFactory,
             CancellationToken cancellationToken)
         {
-            var semaphore = pool[GetKeyIndex(key, pool.Length)];
             await semaphore.WaitAsync(cancellationToken);
             try
             {
@@ -48,16 +47,15 @@ public partial struct PerKeySynchronizer
     {
         var pool_ = pool;
         ValidateDispose(pool_);
-        return Core(pool_, key, argument, func, cancellationToken);
+        var semaphore = pool_[GetKeyIndex(key, pool_.Length)];
+        return Core(semaphore, argument, func, cancellationToken);
 
         static async ValueTask Core(
-            SemaphoreSlim[] pool,
-            TKey key,
+            SemaphoreSlim semaphore,
             TArgument argument,
             Func<TArgument, CancellationToken, ValueTask> func,
             CancellationToken cancellationToken)
         {
-            var semaphore = pool[GetKeyIndex(key, pool.Length)];
             await semaphore.WaitAsync(cancellationToken);
             try
             {
