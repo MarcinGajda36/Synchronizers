@@ -95,7 +95,7 @@ public abstract class PerKeyActionBlockBase<TMessage>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int GetKeyIndex<TKey>(TKey key)
         where TKey : notnull
-        => key.GetHashCode() % actionBlocks.Length;
+        => (key.GetHashCode() & int.MaxValue) % actionBlocks.Length; // '& int.MaxValue' to remove negative ints
 
     /// <summary>
     /// Enqueues an item to one of <see cref="ActionBlock{TMessage}"/>.
