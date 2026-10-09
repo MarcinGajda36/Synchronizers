@@ -80,7 +80,11 @@ public interface IPerKeySynchronizer<TKey>
         TKey key,
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Synchronously acquire synchronization for the specified <paramref name="key"/> and execute <paramref name="action"/>.
@@ -94,7 +98,11 @@ public interface IPerKeySynchronizer<TKey>
         TKey key,
         TArgument argument,
         Action<TArgument, CancellationToken> action,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Synchronously acquire synchronization for the specified <paramref name="key"/>, execute <paramref name="resultFactory"/> (no extra argument), and return its result.

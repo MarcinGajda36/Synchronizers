@@ -130,6 +130,9 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
     {
         var semaphores_ = semaphores;
         var semaphore = GetOrCreate(semaphores_, key);
@@ -157,6 +160,9 @@ public readonly struct PerKeySynchronizer<TKey>(IEqualityComparer<TKey>? equalit
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
     {
         var semaphores_ = semaphores;
         var semaphore = GetOrCreate(semaphores_, key);
