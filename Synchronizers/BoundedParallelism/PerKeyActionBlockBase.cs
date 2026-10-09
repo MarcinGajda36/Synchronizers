@@ -1,6 +1,7 @@
 namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,7 +96,7 @@ public abstract class PerKeyActionBlockBase<TMessage>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int GetKeyIndex<TKey>(TKey key)
         where TKey : notnull
-        => (key.GetHashCode() & int.MaxValue) % actionBlocks.Length; // '& int.MaxValue' to remove negative ints
+        => (int)((uint)EqualityComparer<TKey>.Default.GetHashCode(key) % (uint)actionBlocks.Length);
 
     /// <summary>
     /// Enqueues an item to one of <see cref="ActionBlock{TMessage}"/>.

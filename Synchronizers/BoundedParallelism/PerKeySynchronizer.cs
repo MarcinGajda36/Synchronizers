@@ -1,6 +1,7 @@
 ﻿namespace PerKeySynchronizers.BoundedParallelism;
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -59,14 +60,14 @@ public partial struct PerKeySynchronizer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetKeyIndex<TKey>(TKey key, int poolLength)
         where TKey : notnull
-        => (key.GetHashCode() & int.MaxValue) % poolLength; // '& int.MaxValue' to remove negative ints
+        => (int)((uint)EqualityComparer<TKey>.Default.GetHashCode(key) % (uint)poolLength);
 
     public void Dispose()
     {
         var original = Interlocked.Exchange(ref pool!, null);
-        if (original != null)
+        if (original is { } notNull)
         {
-            Array.ForEach(original, static semaphore => semaphore.Dispose());
+            Array.ForEach(notNull, static semaphore => semaphore.Dispose());
         }
     }
 
