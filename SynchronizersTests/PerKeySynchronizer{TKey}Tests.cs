@@ -1,5 +1,6 @@
 ﻿namespace PerKeySynchronizersTests;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -71,6 +72,27 @@ internal class PerKeySynchronizer_TKey_Tests
         // Assert
         Assert.That(isFunctionExecuted, Is.True);
     }
+
+#if NET10_0_OR_GREATER
+    [Test]
+    public void Synchronize_SingleKey()
+    {
+        // Arrange
+        var synchronizer = new PerKeySynchronizer<int>();
+        var key = 1;
+        var argument = "test".AsSpan();
+        var isFunctionExecuted = false;
+
+        // Act
+        synchronizer.Synchronize(key, argument, (arg, cancellationToken) =>
+        {
+            isFunctionExecuted = true;
+        });
+
+        // Assert
+        Assert.That(isFunctionExecuted, Is.True);
+    }
+#endif
 
     [Test]
     public async Task SynchronizeAsync_MultipleKeys_AllExecuteConcurrently()
