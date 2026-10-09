@@ -105,7 +105,11 @@ public interface IPerKeySynchronizer
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
-        where TKey : notnull;
+        where TKey : notnull
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Acquire synchronizer for a single <paramref name="key"/>, execute <paramref name="action"/> with the supplied <paramref name="argument"/>.
@@ -124,7 +128,11 @@ public interface IPerKeySynchronizer
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
-        where TKey : notnull;
+        where TKey : notnull
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Acquire synchronizer for a single <paramref name="key"/>, execute <paramref name="resultFactory"/>,
@@ -259,7 +267,11 @@ public interface IPerKeySynchronizer
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
-        where TKey : notnull;
+        where TKey : notnull
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Acquire all synchronizers for <paramref name="keys"/>, execute <paramref name="action"/> once with the supplied <paramref name="argument"/>.
@@ -278,7 +290,11 @@ public interface IPerKeySynchronizer
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
-        where TKey : notnull;
+        where TKey : notnull
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Acquire all synchronizers for <paramref name="keys"/>, execute <paramref name="resultFactory"/> once,
@@ -393,7 +409,11 @@ public interface IPerKeySynchronizer
     TResult SynchronizeAll<TArgument, TResult>(
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Acquire all synchronizers, execute <paramref name="action"/> with the supplied <paramref name="argument"/>,
@@ -409,7 +429,11 @@ public interface IPerKeySynchronizer
     void SynchronizeAll<TArgument>(
         TArgument argument,
         Action<TArgument, CancellationToken> action,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
+        ;
 
     /// <summary>
     /// Acquire all synchronizers, execute <paramref name="resultFactory"/>,

@@ -117,6 +117,9 @@ public partial struct PerKeySynchronizer
         TArgument argument,
         Func<TArgument, CancellationToken, TResult> resultFactory,
         CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
     {
         var pool_ = pool;
         ValidateDispose(pool_);
@@ -148,6 +151,9 @@ public partial struct PerKeySynchronizer
         TArgument argument,
         Action<TArgument, CancellationToken> action,
         CancellationToken cancellationToken = default)
+#if NET10_0_OR_GREATER
+        where TArgument : allows ref struct
+#endif
     {
         var pool_ = pool;
         ValidateDispose(pool_);

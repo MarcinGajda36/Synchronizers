@@ -132,7 +132,7 @@ public partial struct PerKeySynchronizer
                     }
                     finally
                     {
-                        semaphore.Release();
+                        _ = semaphore.Release();
                     }
                 });
         return results.ToArray();
