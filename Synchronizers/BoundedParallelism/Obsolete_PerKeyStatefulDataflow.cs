@@ -1,4 +1,6 @@
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Synchronizers.BoundedParallelism; // Not worth breaking change
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 using System;
 using System.ComponentModel;
@@ -20,9 +22,9 @@ public sealed class PerKeyStatefulDataflow<TState, TMessage>(
         Func<TState> InitialStateFactory,
         Func<TState, TMessage, CancellationToken, ValueTask<TState>> FlowAction);
 
-    protected override ActionBlock<TMessage>[] InitializeFlows(object state, ExecutionDataflowBlockOptions options)
+    protected override ActionBlock<TMessage>[] InitializeFlows(object initializeState, ExecutionDataflowBlockOptions options)
     {
-        var (flowsCount, initialStateFactory, flowsAction) = (InitializeState)state;
+        var (flowsCount, initialStateFactory, flowsAction) = (InitializeState)initializeState;
         var token = options.CancellationToken;
         var flows = new ActionBlock<TMessage>[flowsCount];
         for (var idx = 0; idx < flows.Length; idx++)

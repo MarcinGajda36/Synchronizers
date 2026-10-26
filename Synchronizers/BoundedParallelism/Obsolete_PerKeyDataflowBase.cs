@@ -1,4 +1,6 @@
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Synchronizers.BoundedParallelism; // Not worth breaking change
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 using System;
 using System.ComponentModel;
@@ -12,7 +14,9 @@ using System.Threading.Tasks.Dataflow;
 public abstract class PerKeyDataflowBase<TMessage>
     : IDisposable
 {
+#pragma warning disable CA1051 // Do not declare visible instance fields
     protected readonly CancellationTokenSource cancellationSource;
+#pragma warning restore CA1051 // Do not declare visible instance fields
     private readonly ActionBlock<TMessage>[] flows;
     private bool disposedValue;
 
@@ -69,22 +73,22 @@ public abstract class PerKeyDataflowBase<TMessage>
     public bool Enqueue(int flowIndex, TMessage toEnqueue)
     {
         ObjectDisposedException.ThrowIf(disposedValue, this);
-        if (ValidateIndex(flowIndex) is { } exception)
+        return ValidateIndex(flowIndex) switch
         {
-            throw exception;
-        }
-        return flows[flowIndex].Post(toEnqueue);
+            { } exception => throw exception,
+            _ => flows[flowIndex].Post(toEnqueue)
+        };
     }
 
     /// <param name="flowIndex">Index to be between 0 inclusive and FlowsCount exclusive.</param>
     public Task<bool> EnqueueAsync(int flowIndex, TMessage toEnqueue, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(disposedValue, this);
-        if (ValidateIndex(flowIndex) is { } exception)
+        return ValidateIndex(flowIndex) switch
         {
-            throw exception;
-        }
-        return flows[flowIndex].SendAsync(toEnqueue, cancellationToken);
+            { } exception => throw exception,
+            _ => flows[flowIndex].SendAsync(toEnqueue, cancellationToken)
+        };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

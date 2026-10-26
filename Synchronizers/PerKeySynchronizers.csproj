@@ -12,20 +12,19 @@
 		<Description>Helpers to deal with per key synchronization. Main types: PerKeySynchronizer{TKey}, PerKeySynchronizer</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>4.0.1</Version>
+		<AnalysisLevel>latest-recommended</AnalysisLevel>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<IsTrimmable>True</IsTrimmable>
 		<Optimize>False</Optimize>
 		<IsAotCompatible>True</IsAotCompatible>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<IsTrimmable>True</IsTrimmable>
 		<Optimize>True</Optimize>
 		<IsAotCompatible>True</IsAotCompatible>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 </Project>

@@ -6,26 +6,26 @@ using PerKeySynchronizers.UnboundedParallelism;
 
 [RankColumn]
 [MemoryDiagnoser]
-public class PerKeyTkey
+public class PerKeyTKey
 {
-    private static readonly int[] sumsToZero = Enumerable.Range(-50_000, 100_001).ToArray();
+    private static readonly int[] sumsToZero = [.. Enumerable.Range(-50_000, 100_001)];
 
     [Benchmark]
-    public async Task PerKeySynchronizer_OneIntKeys()
+    public static async Task PerKeySynchronizerOneIntKeys()
     {
         var synchronizer = new PerKeySynchronizer<int>();
         await PerKeySynchronizerWork([1], synchronizer, sumsToZero);
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_OneGuidKeys()
+    public static async Task PerKeySynchronizerOneGuidKeys()
     {
         var synchronizer = new PerKeySynchronizer<Guid>();
         await PerKeySynchronizerWork([new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)], synchronizer, sumsToZero);
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_OneIntWrapperKeys()
+    public static async Task PerKeySynchronizerOneIntWrapperKeys()
     {
         var firstKey = new IntWrapper(1);
         var synchronizer = new PerKeySynchronizer<IntWrapper>();
@@ -33,14 +33,14 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_TwoIntKeys()
+    public static async Task PerKeySynchronizerTwoIntKeys()
     {
         var synchronizer = new PerKeySynchronizer<int>();
         await PerKeySynchronizerWork([1, 2], synchronizer, sumsToZero);
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_TwoGuidKeys()
+    public static async Task PerKeySynchronizerTwoGuidKeys()
     {
         var synchronizer = new PerKeySynchronizer<Guid>();
         await PerKeySynchronizerWork(
@@ -50,7 +50,7 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_TwoIntWrapperKeys()
+    public static async Task PerKeySynchronizerTwoIntWrapperKeys()
     {
         var firstKey = new IntWrapper(1);
         var secondKey = new IntWrapper(2);
@@ -59,14 +59,14 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_FourIntKeys()
+    public static async Task PerKeySynchronizerFourIntKeys()
     {
         var synchronizer = new PerKeySynchronizer<int>();
         await PerKeySynchronizerWork([1, 2, 3, 4], synchronizer, sumsToZero);
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_FourGuidKeys()
+    public static async Task PerKeySynchronizerFourGuidKeys()
     {
         var synchronizer = new PerKeySynchronizer<Guid>();
         await PerKeySynchronizerWork(
@@ -81,7 +81,7 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_FourIntWrapperKeys()
+    public static async Task PerKeySynchronizerFourIntWrapperKeys()
     {
         var synchronizer = new PerKeySynchronizer<IntWrapper>();
         await PerKeySynchronizerWork(
@@ -91,7 +91,7 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_SixteenIntKeys()
+    public static async Task PerKeySynchronizerSixteenIntKeys()
     {
         var synchronizer = new PerKeySynchronizer<int>();
         await PerKeySynchronizerWork(
@@ -101,7 +101,7 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_SixteenGuidKeys()
+    public static async Task PerKeySynchronizerSixteenGuidKeys()
     {
         var synchronizer = new PerKeySynchronizer<Guid>();
         await PerKeySynchronizerWork(
@@ -128,7 +128,7 @@ public class PerKeyTkey
     }
 
     [Benchmark]
-    public async Task PerKeySynchronizer_SixteenIntWrapperKeys()
+    public static async Task PerKeySynchronizerSixteenIntWrapperKeys()
     {
         var synchronizer = new PerKeySynchronizer<IntWrapper>();
         await PerKeySynchronizerWork(
